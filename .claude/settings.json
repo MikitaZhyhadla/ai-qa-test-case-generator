@@ -4,6 +4,8 @@
       "Edit(/runs/**)",
       "Bash(node .claude/scripts/workflow-state.js *)",
       "Bash(node .claude/scripts/selftest-hooks.js)",
+      "PowerShell(node .claude/scripts/workflow-state.js *)",
+      "PowerShell(node .claude/scripts/selftest-hooks.js)",
       "Bash(git remote get-url origin)",
       "WebSearch",
       "WebFetch",
