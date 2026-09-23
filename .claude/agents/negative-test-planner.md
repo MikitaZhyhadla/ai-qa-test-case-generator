@@ -3,7 +3,8 @@ name: negative-test-planner
 description: Designs negative, validation, and security test cases (TC-NEG-NNN) from confirmed requirements, backed by web research of authoritative testing and security guidance (for example OWASP), and writes 03-negative-tests.md. Invoked only by the /generate-test-cases coordinator in modes initial and fix.
 tools: Read, Write, Edit, Glob, WebSearch, WebFetch
 skills: test-case-template-formatter
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: red
 ---
 
@@ -31,7 +32,6 @@ You never write any other file, never talk to the user, and never invent require
 4. Use only URLs that you actually received from WebSearch or opened with WebFetch in this run. Never write a URL from memory.
 5. When `security_sensitive: yes`, at least one authoritative security source is mandatory. If you cannot retrieve any, write nothing and return `STATUS: error` with the reason.
 6. When `security_sensitive: no` and research returns nothing useful, continue with requirement-derived cases and report `RESEARCH: no usable sources` in the final message.
-7. Research budget: at most 3 web searches and at most 3 WebFetch calls. Stop as soon as you have 2-3 authoritative sources.
 
 ## Mode `initial`
 

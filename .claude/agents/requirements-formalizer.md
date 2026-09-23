@@ -2,7 +2,8 @@
 name: requirements-formalizer
 description: Fetches a PBI from a GitHub Issue through the GitHub MCP server and turns it into formal, testable requirements (01-requirements.md) with acceptance criteria, open questions, clarifications, and the execution profile. Invoked only by the /generate-test-cases coordinator in modes initial, clarify, revise, and confirm.
 tools: Read, Write, Edit, Glob, mcp__github
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: blue
 ---
 
