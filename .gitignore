@@ -20,3 +20,7 @@ Thumbs.db
 
 # Personal Claude Code instructions (not shared)
 CLAUDE.local.md
+
+# Workflow runtime files (lock and temporary files of the state script)
+runs/*/.state.lock/
+runs/*/*.tmp-*
