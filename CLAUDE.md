@@ -25,12 +25,15 @@ All repository content is written in English: code, configs, documentation, prom
 | Subagent | `html-builder` | `.claude/agents/` | Renders the approved suite as a standalone HTML document |
 | Skill | `test-case-template-formatter` | `.claude/skills/test-case-template-formatter/` | The single test case template, suite document structure, HTML template |
 | Skill | `traceability-checker` | `.claude/skills/traceability-checker/` | Acceptance criteria ↔ test case traceability and coverage checks |
-| Hook (PreToolUse) | `approval-gate-guard` | `.claude/hooks/approval-gate-guard.js` | Blocks final output writes without a valid approval; blocks direct writes to `approval.json` |
+| Hook (PreToolUse) | `approval-gate-guard` | `.claude/hooks/approval-gate-guard.js` | Blocks final output writes without a valid approval; blocks direct writes to `approval.json` and `workflow-state.json`, including through shell commands |
 | Hook (PostToolUse) | `post-write-state` | `.claude/hooks/post-write-state.js` | Records every written run artifact (path, time, sha256) in `workflow-state.json` |
 | Hook (UserPromptSubmit) | `approval-recorder` | `.claude/hooks/approval-recorder.js` | Deterministically records the user's `APPROVE` / `REJECT` decision in `approval.json` |
-| MCP server | GitHub | `.mcp.json` | Reads PBI issues; optionally posts a summary comment |
+| MCP server | GitHub | `.mcp.json` | Reads PBI issues and related issues; optionally posts a summary comment |
+| Script | `workflow-state` | `.claude/scripts/workflow-state.js` | Deterministic CLI the coordinator uses to create and update `workflow-state.json` |
+| Library | `workflow-lib` | `.claude/lib/workflow-lib.js` | Shared code of the state script and the hooks: step graph, sha256, file lock, atomic writes |
+| Script | `selftest-hooks` | `.claude/scripts/selftest-hooks.js` | Self-test of the hooks and the state script |
 
-Subagents cannot talk to the user and cannot call other subagents. Only the coordinator asks the user questions and invokes subagents.
+Subagents cannot ask the user questions, and none of them is given the `Agent` tool, so they cannot invoke other subagents. Only the coordinator talks to the user and invokes subagents.
 
 ## Run layout
 
@@ -73,20 +76,20 @@ runs/<run-id>/
 | `clarify` | Ask the user the open questions; re-run formalizer with answers; get explicit confirmation | coordinator + `requirements-formalizer` | `formalize` | sequential, loops until confirmed |
 | `validate-requirements` | Gates R1–R3 | `validator` (scope `requirements`) | `clarify` | sequential |
 | `plan` | Select subagents from the execution profile; record the plan in state | coordinator | `validate-requirements` | sequential |
-| `design` | Functional, negative, edge-case, regression planning | selected planners | `plan` | **parallel** |
-| `aggregate` | Build coverage matrix | `coverage-aggregator` | `design` | sequential |
+| `design-functional`, `design-negative`, `design-edge`, `design-regression` | Functional, negative, edge-case, regression planning (one step per selected planner) | selected planners | `plan` | **parallel** |
+| `aggregate` | Build coverage matrix | `coverage-aggregator` | all selected `design-*` steps | sequential |
 | `validate-design` | Gates G1–G9 | `validator` (scope `test-design`) | `aggregate` | sequential |
 | `build-suite` | Merge into the test suite draft | `test-suite-builder` | `validate-design` | sequential |
 | `validate-suite` | Gates S1–S3 | `validator` (scope `suite`) | `build-suite` | sequential |
 | `approval` | Human approval; revision loop on reject | coordinator + `approval-recorder` hook | `validate-suite` | sequential, loops until approved |
-| `render` | Final outputs in the confirmed formats | `markdown-builder`, `html-builder` | `approval` | **parallel** |
-| `report` | Post a short summary comment to the GitHub Issue | coordinator via GitHub MCP | `render` | optional |
+| `render-markdown`, `render-html` | Final outputs in the confirmed formats | `markdown-builder`, `html-builder` | `approval` | **parallel** |
+| `report` | Post a short summary comment to the GitHub Issue | coordinator via GitHub MCP | all selected `render-*` steps | optional |
 
 ## Requirements gathering and confirmation
 
 1. `requirements-formalizer` fetches the Issue through the GitHub MCP server, saves the raw text to `input/pbi.md`, and writes `01-requirements.md` with: summary, numbered acceptance criteria, business rules, constraints, assumptions, open questions, and the execution profile.
 2. If there are open questions, the coordinator asks the user all of them in one message, then re-invokes the formalizer with the answers. Answers are recorded in the `Clarifications` section.
-3. The coordinator shows the user a short summary of the formalized requirements and the execution profile and asks for explicit confirmation. Corrections trigger another formalizer pass.
+3. The coordinator shows the user a short summary of the formalized requirements and the execution profile and asks for explicit confirmation: the user replies `CONFIRM` or sends corrections. Corrections trigger another formalizer pass.
 4. After the user confirms, the formalizer sets `Status: Confirmed by user` with the date. Dependent work never starts on unconfirmed requirements.
 
 The execution profile in `01-requirements.md` contains:
@@ -162,7 +165,8 @@ The `validator` never edits artifacts. For every failed gate, it reports the gat
 ## State and resume
 
 - `workflow-state.json` holds: run ID, issue reference, run status, execution profile, execution plan with selection reasons, per-step status (`pending`, `in_progress`, `completed`, `failed`, `skipped`), retry counters per gate scope, gate results, approval status, revision history, and the artifact registry.
-- The coordinator creates the file at run start and updates step statuses before and after every step. After creation it modifies the file only with the Edit tool, re-reading it first, because the `post-write-state` hook updates the `artifacts` section in parallel.
+- The coordinator creates and changes the file only through `node .claude/scripts/workflow-state.js <command>` (`init`, `step`, `set`, `gate`, `retry`, `invalidate`, `revision`, `verify`), before and after every step. The script and the `post-write-state` hook share a file lock and write atomically, so parallel subagents never lose updates. Direct writes to the file are blocked by `approval-gate-guard`.
+- `node .claude/scripts/selftest-hooks.js` runs a self-test of the hooks and the state script on a temporary run and removes it afterwards.
 - Resume with `/generate-test-cases --resume <run-id>`. The coordinator reads the state, verifies the recorded sha256 of completed artifacts, skips `completed` and `skipped` steps, and continues from the first `pending`, `in_progress`, or `failed` step. A completed step whose artifact is missing or changed is re-run together with its downstream steps.
 
 ## Secrets
