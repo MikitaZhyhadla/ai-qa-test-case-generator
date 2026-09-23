@@ -1,0 +1,3442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Suite - Reset a forgotten password via an email link</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --card: #f6f8fa;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --card: #151b23;
+      --critical: #f85149; --high: #db6d28; --medium: #d29922; --low: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card); }
+  .table-wrap { overflow-x: auto; }
+  .tc { border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+        padding: 14px 18px; margin: 14px 0; page-break-inside: avoid; }
+  .tc h4 { margin: 0 0 10px; font-size: 16px; }
+  .tc-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--muted); margin-right: 6px; }
+  .tc table { background: var(--bg); }
+  .label { font-weight: 600; margin: 10px 0 4px; }
+  .prio { font-weight: 600; }
+  .prio-critical { color: var(--critical); } .prio-high { color: var(--high); }
+  .prio-medium { color: var(--medium); } .prio-low { color: var(--low); }
+  .na { color: var(--muted); font-style: italic; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; }
+  @media print { body { background: #fff; color: #000; } .tc { background: #fff; } a { color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test Suite - Reset a forgotten password via an email link</h1>
+  <div class="table-wrap"><table>
+    <tr><th>Run ID</th><td>issue-7-20260923-2249</td></tr>
+    <tr><th>Source issue</th><td><a href="https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/7">#7 PBI: Reset a forgotten password via an email link</a></td></tr>
+    <tr><th>Revision</th><td>1</td></tr>
+    <tr><th>Status</th><td>Approved</td></tr>
+    <tr><th>Approved at</th><td>2026-09-24 00:43</td></tr>
+    <tr><th>Generated</th><td>2026-09-23 23:55</td></tr>
+  </table></div>
+
+  <h2>1. Summary</h2>
+  <p>Notely, a fictional note-taking web app, gets a self-service password reset flow: a user who forgot the password requests a single-use reset link by email from the login page, sets a new password that satisfies the password policy, and all existing sessions are signed out afterwards. The flow must not reveal whether an account exists, limits reset requests to 5 per rolling 60 minutes per email address, and enforces a 254-character email limit in the UI and on the server. Positive functional cases cover every acceptance criterion. Negative and security cases were selected because the feature is an authentication flow; they cover account enumeration, rate limit bypass, token misuse, and session invalidation, based on OWASP guidance. Boundary and equivalence cases were selected because the requirements contain numeric limits (password length 8-64, 254-character email, 5 requests per 60 minutes, 60-minute link validity); regression analysis was not selected because the feature is new.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th></tr>
+    <tr><td>Functional</td><td>10</td><td>16</td><td>9</td><td>0</td><td>35</td></tr>
+    <tr><td>Negative</td><td>0</td><td>3</td><td>19</td><td>0</td><td>22</td></tr>
+    <tr><td>Security</td><td>9</td><td>11</td><td>0</td><td>0</td><td>20</td></tr>
+    <tr><td>Boundary</td><td>0</td><td>10</td><td>6</td><td>2</td><td>18</td></tr>
+    <tr><td>Equivalence</td><td>0</td><td>0</td><td>8</td><td>0</td><td>8</td></tr>
+    <tr><td>Regression</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>19</strong></td><td><strong>40</strong></td><td><strong>42</strong></td><td><strong>2</strong></td><td><strong>103</strong></td></tr>
+  </table></div>
+
+  <h2>2. Scope</h2>
+  <p class="label">In scope</p>
+  <ul>
+    <li>Entry to the flow: the &quot;Forgot password?&quot; link on the login page and the &quot;Reset password&quot; page (AC-1, AC-2, AC-3)</li>
+    <li>Uniform confirmation message and account enumeration protection, including response timing and email service failure (AC-4, AC-5)</li>
+    <li>Reset email delivery to active accounts and no email for deactivated or unregistered addresses (AC-8, AC-9)</li>
+    <li>Rate limit of 5 requests per rolling 60 minutes per email address, blocked requests, and recovery of the limit (AC-6, AC-7, AC-26, AC-27)</li>
+    <li>Email address validation, normalization (trimming and case), and the 254-character limit in the UI and on the server (AC-21, AC-22, AC-23, AC-29)</li>
+    <li>Reset link states: valid, superseded, expired, used, tampered, and cross-account misuse (AC-10, AC-11, AC-12, AC-13, AC-28)</li>
+    <li>New password policy: length, Latin letter and digit, no spaces, confirmation match, difference from the current password, and combined violations (AC-14, AC-15, AC-16, AC-24, AC-25, AC-30)</li>
+    <li>Post-reset outcomes: redirect, confirmation message, sign-out of existing sessions, login with the new password (AC-17, AC-18, AC-19, AC-20)</li>
+  </ul>
+  <p class="label">Out of scope</p>
+  <ul>
+    <li>Password reset via SMS (excluded by the requirements)</li>
+    <li>Changing the account email address (excluded by the requirements)</li>
+    <li>Regression testing of existing features - not selected for this run, because the change type is a new feature (self-service password reset does not exist today)</li>
+    <li>Whitespace characters other than spaces (for example tabs) in the new password, because the requirements name spaces only</li>
+    <li>Late email delivery (more than 1 minute), because it cannot be forced through the product</li>
+  </ul>
+
+  <h2>3. Requirements under test</h2>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Acceptance criterion</th></tr>
+    <tr><td>AC-1</td><td>The login page displays a link with the text &quot;Forgot password?&quot;.</td></tr>
+    <tr><td>AC-2</td><td>Clicking the &quot;Forgot password?&quot; link opens the &quot;Reset password&quot; page.</td></tr>
+    <tr><td>AC-3</td><td>The &quot;Reset password&quot; page contains an email address input field and a &quot;Send reset link&quot; button; entering an email address and clicking the button submits the reset request.</td></tr>
+    <tr><td>AC-4</td><td>After submitting a syntactically valid email address, the page shows the message &quot;If an account exists for this email, we sent a reset link.&quot; regardless of whether the address belongs to an active account, a deactivated account, or no account.</td></tr>
+    <tr><td>AC-5</td><td>The page shown after submitting a syntactically valid email address is identical (message, fields, buttons) for an active account, a deactivated account, and an unregistered address, so it does not reveal whether an account exists.</td></tr>
+    <tr><td>AC-6</td><td>Up to 5 reset requests for the same syntactically valid email address within a rolling 60-minute window are accepted and each shows the message from AC-4; the limit applies whether the address belongs to an active account, a deactivated account, or no account.</td></tr>
+    <tr><td>AC-7</td><td>A 6th reset request for the same email address within a rolling 60-minute window shows the message &quot;Too many requests. Try again later.&quot;</td></tr>
+    <tr><td>AC-8</td><td>When a submitted email address belongs to an active account, the system sends an email containing a reset link to that address within 1 minute of the submission.</td></tr>
+    <tr><td>AC-9</td><td>When a submitted email address belongs to a deactivated account or to no account, no reset email is sent.</td></tr>
+    <tr><td>AC-10</td><td>Requesting a new reset link for an account invalidates all previously sent reset links for that account; opening an older link shows &quot;This link has expired. Please request a new one.&quot; and a &quot;Request a new link&quot; button.</td></tr>
+    <tr><td>AC-11</td><td>Opening a valid reset link (not used, not superseded, less than 60 minutes after it was sent) opens a page with &quot;New password&quot; and &quot;Confirm password&quot; fields.</td></tr>
+    <tr><td>AC-12</td><td>Opening a reset link 60 minutes or more after it was sent shows &quot;This link has expired. Please request a new one.&quot; and a &quot;Request a new link&quot; button.</td></tr>
+    <tr><td>AC-13</td><td>Opening a reset link that was already used for a successful password reset shows &quot;This link has expired. Please request a new one.&quot; and a &quot;Request a new link&quot; button.</td></tr>
+    <tr><td>AC-14</td><td>A new password of 8 to 64 characters (inclusive) is accepted; a new password shorter than 8 or longer than 64 characters is rejected with the message &quot;Password must be 8-64 characters long.&quot; and the password is not changed.</td></tr>
+    <tr><td>AC-15</td><td>A new password that contains at least one Latin letter (A-Z or a-z) and at least one digit is accepted; a new password without a Latin letter or without a digit is rejected with the message &quot;Password must contain at least one letter and one digit.&quot; and the password is not changed.</td></tr>
+    <tr><td>AC-16</td><td>The password is changed only when the &quot;New password&quot; and &quot;Confirm password&quot; values match; if they differ, the reset is rejected with the message &quot;Passwords do not match.&quot; and the password is not changed.</td></tr>
+    <tr><td>AC-17</td><td>After a successful reset, the message &quot;Your password has been changed&quot; is shown on the login page.</td></tr>
+    <tr><td>AC-18</td><td>After a successful reset, the user is automatically redirected to the login page.</td></tr>
+    <tr><td>AC-19</td><td>After a successful reset, all sessions of the user that existed before the reset are signed out; any further action in such a session requires a new login.</td></tr>
+    <tr><td>AC-20</td><td>After a successful reset, the user can log in with the new password, and a login attempt with the previous password is rejected.</td></tr>
+    <tr><td>AC-21</td><td>Submitting an empty or syntactically invalid email address shows the inline error &quot;Enter a valid email address.&quot;; no reset request is sent, no email is sent, and the submission does not count toward the rate limit of AC-6 and AC-7.</td></tr>
+    <tr><td>AC-22</td><td>Leading and trailing spaces of the submitted email address are removed and letter case is ignored, so <code>  Anna.Test@Example.com </code> is treated as the same address as <code>anna.test@example.com</code> for account matching and for the rate limit.</td></tr>
+    <tr><td>AC-23</td><td>The email address field accepts at most 254 characters: an address of up to 254 characters can be entered and submitted, typing stops at 254 characters, and pasted text is truncated to the first 254 characters.</td></tr>
+    <tr><td>AC-24</td><td>A new password that contains a space is rejected with the message &quot;Password must not contain spaces.&quot; and the password is not changed; other special characters are allowed.</td></tr>
+    <tr><td>AC-25</td><td>A new password that satisfies all other password rules (AC-14, AC-15, AC-16, AC-24) but is the same as the current password is rejected with the message &quot;New password must be different from your current password.&quot; and the password is not changed; this check is not performed while any other password rule is violated.</td></tr>
+    <tr><td>AC-26</td><td>A rate-limited (blocked) reset request sends no email and does not invalidate previously sent reset links; those links remain valid.</td></tr>
+    <tr><td>AC-27</td><td>Once fewer than 5 accepted requests for an email address fall within the last 60 minutes, a new reset request for that address is accepted again and shows the message from AC-4.</td></tr>
+    <tr><td>AC-28</td><td>Clicking the &quot;Request a new link&quot; button on the expired-link page opens the &quot;Reset password&quot; page.</td></tr>
+    <tr><td>AC-29</td><td>When the UI limit is bypassed and a reset request with an email address longer than 254 characters reaches the server, the server rejects it and the message &quot;Enter a valid email address.&quot; is shown; no email is sent.</td></tr>
+    <tr><td>AC-30</td><td>When a new password violates several of the rules in AC-14, AC-15, AC-16, and AC-24 at once, all matching error messages are shown at the same time and the password is not changed.</td></tr>
+  </table></div>
+
+  <h2>4. Coverage matrix</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Requirement</th><th>Positive</th><th>Negative / Security</th><th>Boundary / Equivalence</th><th>Regression</th></tr>
+    <tr><td>AC-1</td><td>TC-FUN-001</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-2</td><td>TC-FUN-002</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-3</td><td>TC-FUN-003</td><td>TC-NEG-001</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-4</td><td>TC-FUN-004, TC-FUN-005, TC-FUN-006</td><td>TC-NEG-002, TC-NEG-003</td><td>TC-EDGE-001</td><td>-</td></tr>
+    <tr><td>AC-5</td><td>TC-FUN-007</td><td>TC-NEG-002, TC-NEG-003, TC-NEG-004, TC-NEG-005</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-6</td><td>TC-FUN-014, TC-FUN-016, TC-FUN-021</td><td>TC-NEG-006, TC-NEG-008</td><td>TC-EDGE-009, TC-EDGE-011</td><td>-</td></tr>
+    <tr><td>AC-7</td><td>TC-FUN-015, TC-FUN-016, TC-FUN-021</td><td>TC-NEG-006, TC-NEG-007, TC-NEG-008, TC-NEG-037, TC-NEG-046</td><td>TC-EDGE-011, TC-EDGE-012, TC-EDGE-014, TC-EDGE-015</td><td>-</td></tr>
+    <tr><td>AC-8</td><td>TC-FUN-008</td><td>TC-NEG-005, TC-NEG-009, TC-NEG-010, TC-NEG-011</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-9</td><td>TC-FUN-009, TC-FUN-010</td><td>TC-NEG-003, TC-NEG-039</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-10</td><td>TC-FUN-023</td><td>TC-NEG-014, TC-NEG-045</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-11</td><td>TC-FUN-022</td><td>TC-NEG-010, TC-NEG-015, TC-NEG-016</td><td>TC-EDGE-016, TC-EDGE-019</td><td>-</td></tr>
+    <tr><td>AC-12</td><td>TC-FUN-024</td><td>TC-NEG-018</td><td>TC-EDGE-017, TC-EDGE-018, TC-EDGE-020</td><td>-</td></tr>
+    <tr><td>AC-13</td><td>TC-FUN-035</td><td>TC-NEG-020</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-14</td><td>TC-FUN-027</td><td>TC-NEG-021, TC-NEG-022, TC-NEG-030, TC-NEG-049</td><td>TC-EDGE-022, TC-EDGE-023, TC-EDGE-024, TC-EDGE-025</td><td>-</td></tr>
+    <tr><td>AC-15</td><td>TC-FUN-028</td><td>TC-NEG-023, TC-NEG-024, TC-NEG-025, TC-NEG-049</td><td>TC-EDGE-026, TC-EDGE-028, TC-EDGE-031</td><td>-</td></tr>
+    <tr><td>AC-16</td><td>TC-FUN-026</td><td>TC-NEG-026, TC-NEG-044</td><td>TC-EDGE-036, TC-EDGE-037</td><td>-</td></tr>
+    <tr><td>AC-17</td><td>TC-FUN-026</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-18</td><td>TC-FUN-026</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-19</td><td>TC-FUN-032</td><td>TC-NEG-028</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-20</td><td>TC-FUN-033, TC-FUN-034</td><td>TC-NEG-030</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-21</td><td>TC-FUN-018</td><td>TC-NEG-001, TC-NEG-011, TC-NEG-031, TC-NEG-032, TC-NEG-033, TC-NEG-035, TC-NEG-036, TC-NEG-038</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-22</td><td>TC-FUN-011, TC-FUN-017</td><td>TC-NEG-031, TC-NEG-037, TC-NEG-038, TC-NEG-039</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-23</td><td>TC-FUN-012</td><td>TC-NEG-040</td><td>TC-EDGE-001, TC-EDGE-002, TC-EDGE-003</td><td>-</td></tr>
+    <tr><td>AC-24</td><td>TC-FUN-029</td><td>TC-NEG-041, TC-NEG-042</td><td>TC-EDGE-034, TC-EDGE-035</td><td>-</td></tr>
+    <tr><td>AC-25</td><td>TC-FUN-030</td><td>TC-NEG-043, TC-NEG-044</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-26</td><td>TC-FUN-019</td><td>TC-NEG-007, TC-NEG-045</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-27</td><td>TC-FUN-020, TC-FUN-021</td><td>TC-NEG-046</td><td>TC-EDGE-012, TC-EDGE-013, TC-EDGE-014, TC-EDGE-015</td><td>-</td></tr>
+    <tr><td>AC-28</td><td>TC-FUN-025</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-29</td><td>TC-FUN-013</td><td>TC-NEG-047</td><td>TC-EDGE-004</td><td>-</td></tr>
+    <tr><td>AC-30</td><td>TC-FUN-031</td><td>TC-NEG-048, TC-NEG-049</td><td>-</td><td>-</td></tr>
+  </table></div>
+
+  <h2>5. Test cases</h2>
+  <h3>5.1 Functional</h3>
+  <section class="tc" id="TC-FUN-001">
+    <h4><span class="tc-id">TC-FUN-001</span>Display the &quot;Forgot password?&quot; link on the login page</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The tester is not logged in to Notely</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Login page URL: <code>https://notely.example.com/login</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open <code>https://notely.example.com/login</code> in the browser.</li>
+      <li>Look at the login form.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login page displays a link with the exact text &quot;Forgot password?&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-002">
+    <h4><span class="tc-id">TC-FUN-002</span>Open the &quot;Reset password&quot; page from the &quot;Forgot password?&quot; link</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The tester is not logged in to Notely</li>
+      <li>The login page <code>https://notely.example.com/login</code> is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>None</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Click the &quot;Forgot password?&quot; link.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page opens.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-003">
+    <h4><span class="tc-id">TC-FUN-003</span>Submit a reset request from the &quot;Reset password&quot; page</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code></li>
+      <li>No reset request was made for <code>anna.test@example.com</code> in the last 60 minutes</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Check that the page shows an email address input field and a &quot;Send reset link&quot; button.</li>
+      <li>Enter <code>anna.test@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page contains an email address input field and a &quot;Send reset link&quot; button.</li>
+      <li>After the click, the reset request is submitted: the page shows the message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-004">
+    <h4><span class="tc-id">TC-FUN-004</span>Show the confirmation message for an active account</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Ben Active with email <code>ben.active@example.com</code></li>
+      <li>No reset request was made for <code>ben.active@example.com</code> in the last 60 minutes</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>ben.active@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>ben.active@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows exactly the message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-005">
+    <h4><span class="tc-id">TC-FUN-005</span>Show the same confirmation message for a deactivated account (BR-2)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A deactivated account exists for Boris Inactive with email <code>boris.inactive@example.com</code></li>
+      <li>No reset request was made for <code>boris.inactive@example.com</code> in the last 60 minutes</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>boris.inactive@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>boris.inactive@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows exactly the message &quot;If an account exists for this email, we sent a reset link.&quot; (business rule BR-2).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-006">
+    <h4><span class="tc-id">TC-FUN-006</span>Show the same confirmation message for an unregistered address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>No Notely account exists for <code>nobody.registered@example.com</code></li>
+      <li>No reset request was made for <code>nobody.registered@example.com</code> in the last 60 minutes</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>nobody.registered@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>nobody.registered@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows exactly the message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-007">
+    <h4><span class="tc-id">TC-FUN-007</span>Show an identical result page for active, deactivated, and unregistered addresses</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>carla.active@example.com</code></li>
+      <li>A deactivated account exists with email <code>dirk.inactive@example.com</code></li>
+      <li>No Notely account exists for <code>emil.unknown@example.com</code></li>
+      <li>No reset request was made for any of these addresses in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Active: <code>carla.active@example.com</code></li>
+      <li>Deactivated: <code>dirk.inactive@example.com</code></li>
+      <li>Unregistered: <code>emil.unknown@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, submit <code>carla.active@example.com</code>, and take a screenshot of the resulting page.</li>
+      <li>Open the &quot;Reset password&quot; page, submit <code>dirk.inactive@example.com</code>, and take a screenshot of the resulting page.</li>
+      <li>Open the &quot;Reset password&quot; page, submit <code>emil.unknown@example.com</code>, and take a screenshot of the resulting page.</li>
+      <li>Compare the three screenshots.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>All three pages show the same message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>All three pages show the same fields and the same buttons, with no additional or missing element on any of them.</li>
+      <li>Nothing on the pages indicates whether an account exists for the submitted address.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-008">
+    <h4><span class="tc-id">TC-FUN-008</span>Send the reset email to an active account within 1 minute</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>anna.test@example.com</code></li>
+      <li>No reset request was made for <code>anna.test@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Enter <code>anna.test@example.com</code> and click &quot;Send reset link&quot;; note the time of the click.</li>
+      <li>Open the test mailbox of <code>anna.test@example.com</code> and look for a new email from Notely.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A new email from Notely arrives in the mailbox of <code>anna.test@example.com</code>.</li>
+      <li>The email contains a password reset link.</li>
+      <li>The email was sent no later than 1 minute after the noted submission time (checked against the email timestamp).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-009">
+    <h4><span class="tc-id">TC-FUN-009</span>Send no reset email to a deactivated account (BR-2)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A deactivated account exists for Boris Inactive with email <code>boris.inactive@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>boris.inactive@example.com</code>, and the mailbox contains no Notely emails</li>
+      <li>No reset request was made for <code>boris.inactive@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>boris.inactive@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Enter <code>boris.inactive@example.com</code> and click &quot;Send reset link&quot;.</li>
+      <li>Wait 5 minutes.</li>
+      <li>Check the test mailbox of <code>boris.inactive@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>No reset email from Notely arrives in the mailbox of <code>boris.inactive@example.com</code> (business rule BR-2: deactivated accounts never receive a reset email).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-010">
+    <h4><span class="tc-id">TC-FUN-010</span>Send no reset email to an unregistered address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>No Notely account exists for <code>nobody.registered@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>nobody.registered@example.com</code>, and the mailbox contains no Notely emails</li>
+      <li>No reset request was made for <code>nobody.registered@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>nobody.registered@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Enter <code>nobody.registered@example.com</code> and click &quot;Send reset link&quot;.</li>
+      <li>Wait 5 minutes.</li>
+      <li>Check the test mailbox of <code>nobody.registered@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>No reset email from Notely arrives in the mailbox of <code>nobody.registered@example.com</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-011">
+    <h4><span class="tc-id">TC-FUN-011</span>Match an address with surrounding spaces and mixed case to the account (BR-7)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-22</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>anna.test@example.com</code></li>
+      <li>No reset request was made for <code>anna.test@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Entered email: <code>  Anna.Test@Example.com </code> (two leading spaces, one trailing space, mixed case)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Enter <code>  Anna.Test@Example.com </code> exactly as given, including the spaces.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+      <li>Check the test mailbox of <code>anna.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>A reset email with a reset link arrives in the mailbox of <code>anna.test@example.com</code> within 1 minute, confirming that the address was normalized per business rule BR-7 and matched to the account.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-012">
+    <h4><span class="tc-id">TC-FUN-012</span>Enter and submit a long email address within the 254-character limit (BR-10)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-23</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>elisabeth.very-long-display-name.for-qa-testing@notes-department.example.com</code></li>
+      <li>The tester has access to the test mailbox of this address</li>
+      <li>No reset request was made for this address in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>elisabeth.very-long-display-name.for-qa-testing@notes-department.example.com</code> (well below 254 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Type the email address from the test data into the email address field.</li>
+      <li>Check the value shown in the field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+      <li>Check the test mailbox of the address.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The field contains the complete address, with no character cut off (business rule BR-10 limits only addresses longer than 254 characters).</li>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>A reset email arrives in the mailbox of the address within 1 minute.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-013">
+    <h4><span class="tc-id">TC-FUN-013</span>Accept a valid-length address on the server when the UI limit is bypassed (BR-10)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-29</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Felix Server with email <code>felix.server@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>felix.server@example.com</code></li>
+      <li>No reset request was made for <code>felix.server@example.com</code> in the last 60 minutes</li>
+      <li>The &quot;Reset password&quot; page is open in a browser with developer tools available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>felix.server@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the browser developer tools and remove the 254-character input limit from the email address field.</li>
+      <li>Enter <code>felix.server@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+      <li>Check the test mailbox of <code>felix.server@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server-side 254-character check of business rule BR-10 does not reject the address: the message &quot;Enter a valid email address.&quot; is not shown.</li>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>A reset email arrives in the mailbox of <code>felix.server@example.com</code> within 1 minute.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-014">
+    <h4><span class="tc-id">TC-FUN-014</span>Accept 5 reset requests for the same address within 60 minutes (BR-4)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Clara Limit with email <code>clara.limit@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>clara.limit@example.com</code></li>
+      <li>No reset request was made for <code>clara.limit@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>clara.limit@example.com</code></li>
+      <li>Number of requests: 5, about 1 minute apart</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, enter <code>clara.limit@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Repeat step 1 four more times, about 1 minute apart (5 requests in total).</li>
+      <li>Check the test mailbox of <code>clara.limit@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Each of the 5 requests shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>The message &quot;Too many requests. Try again later.&quot; is not shown for any of the 5 requests (business rule BR-4 allows 5 requests per rolling 60 minutes).</li>
+      <li>5 reset emails arrive in the mailbox of <code>clara.limit@example.com</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-015">
+    <h4><span class="tc-id">TC-FUN-015</span>Show the rate-limit message on the 6th request within 60 minutes (BR-4)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Dora Limit with email <code>dora.limit@example.com</code></li>
+      <li>Exactly 5 accepted reset requests were made for <code>dora.limit@example.com</code> within the last 10 minutes</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>dora.limit@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>dora.limit@example.com</code> into the email address field.</li>
+      <li>Click &quot;Send reset link&quot; (6th request within 60 minutes).</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows exactly the message &quot;Too many requests. Try again later.&quot; (business rule BR-4).</li>
+      <li>The message &quot;If an account exists for this email, we sent a reset link.&quot; is not shown for this request.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-016">
+    <h4><span class="tc-id">TC-FUN-016</span>Apply the rate limit to an unregistered address (BR-4)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6, AC-7</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>No Notely account exists for <code>ghost.user@example.com</code></li>
+      <li>No reset request was made for <code>ghost.user@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>ghost.user@example.com</code></li>
+      <li>Number of requests: 6, about 1 minute apart</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, enter <code>ghost.user@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Repeat step 1 four more times, about 1 minute apart (5 requests in total).</li>
+      <li>Repeat step 1 once more (6th request).</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Requests 1 to 5 each show &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Request 6 shows &quot;Too many requests. Try again later.&quot;, the same as for a registered address (business rule BR-4 applies whether or not an account exists).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-017">
+    <h4><span class="tc-id">TC-FUN-017</span>Count case and space variants of one address toward the same rate limit (BR-7)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-22</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Helen Case with email <code>helen.case@example.com</code></li>
+      <li>No reset request was made for <code>helen.case@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Request 1: <code>helen.case@example.com</code></li>
+      <li>Request 2: <code>HELEN.CASE@EXAMPLE.COM</code></li>
+      <li>Request 3: <code>  Helen.Case@Example.com </code> (with leading and trailing spaces)</li>
+      <li>Request 4: <code>helen.case@EXAMPLE.com  </code> (with trailing spaces)</li>
+      <li>Request 5: <code>Helen.case@example.com</code></li>
+      <li>Request 6: <code>helen.case@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page and submit request 1 from the test data.</li>
+      <li>Submit requests 2 to 5 from the test data one after another, about 1 minute apart.</li>
+      <li>Submit request 6 from the test data.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Requests 1 to 5 each show &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Request 6 shows &quot;Too many requests. Try again later.&quot;, because all six variants are normalized to <code>helen.case@example.com</code> per business rule BR-7 and counted as one address.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-018">
+    <h4><span class="tc-id">TC-FUN-018</span>Do not count empty and invalid submissions toward the rate limit (BR-8)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Ivan Check with email <code>ivan.check@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>ivan.check@example.com</code></li>
+      <li>No reset request was made for <code>ivan.check@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Empty value: nothing entered in the email address field</li>
+      <li>Invalid value: <code>ivan.check@@example.com</code></li>
+      <li>Valid email: <code>ivan.check@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, leave the email address field empty, and click &quot;Send reset link&quot;.</li>
+      <li>Enter <code>ivan.check@@example.com</code> and click &quot;Send reset link&quot;.</li>
+      <li>Enter <code>ivan.check@example.com</code> and click &quot;Send reset link&quot;.</li>
+      <li>Repeat step 3 four more times, about 1 minute apart (5 valid requests in total).</li>
+      <li>Check the test mailbox of <code>ivan.check@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Steps 1 and 2 each show the inline error &quot;Enter a valid email address.&quot;</li>
+      <li>All 5 valid requests show &quot;If an account exists for this email, we sent a reset link.&quot;; &quot;Too many requests. Try again later.&quot; is not shown, because the empty and invalid submissions did not count toward the limit (business rule BR-8).</li>
+      <li>Exactly 5 reset emails arrive in the mailbox of <code>ivan.check@example.com</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-019">
+    <h4><span class="tc-id">TC-FUN-019</span>Keep the latest link valid and send no email after a blocked request (BR-9)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-26</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Julia Block with email <code>julia.block@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>julia.block@example.com</code></li>
+      <li>Exactly 5 accepted reset requests were made for <code>julia.block@example.com</code> within the last 10 minutes, and 5 reset emails were received</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>julia.block@example.com</code></li>
+      <li>Link #5: the reset link from the most recent (5th) reset email</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, enter <code>julia.block@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Wait 5 minutes and check the test mailbox of <code>julia.block@example.com</code>.</li>
+      <li>Open link #5 from the 5th reset email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Step 1 shows &quot;Too many requests. Try again later.&quot;</li>
+      <li>No new (6th) reset email arrives in the mailbox.</li>
+      <li>Link #5 opens the page with the &quot;New password&quot; and &quot;Confirm password&quot; fields, so the blocked request did not invalidate it (business rule BR-9).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-020">
+    <h4><span class="tc-id">TC-FUN-020</span>Accept a new request after earlier requests leave the 60-minute window</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-27</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Erik Recover with email <code>erik.recover@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>erik.recover@example.com</code></li>
+      <li>Exactly 5 accepted reset requests were made for <code>erik.recover@example.com</code> at 10:00, 10:01, 10:02, 10:03, and 10:04, and no other requests after that</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>erik.recover@example.com</code></li>
+      <li>Time of the new request: 11:05 (all 5 earlier requests are older than 60 minutes)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At 11:05, open the &quot;Reset password&quot; page, enter <code>erik.recover@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Check the test mailbox of <code>erik.recover@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>A new reset email arrives in the mailbox within 1 minute.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-021">
+    <h4><span class="tc-id">TC-FUN-021</span>Move the rate limit through accepted, blocked, and accepted states in a rolling window</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6, AC-7, AC-27</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Frank Window with email <code>frank.window@example.com</code></li>
+      <li>No reset request was made for <code>frank.window@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>frank.window@example.com</code></li>
+      <li>Request times: 10:00, 10:10, 10:20, 10:30, 10:40, 10:45, 11:01, 11:05, 11:11</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>frank.window@example.com</code> at 10:00, 10:10, 10:20, 10:30, and 10:40.</li>
+      <li>Submit a reset request at 10:45.</li>
+      <li>Submit a reset request at 11:01.</li>
+      <li>Submit a reset request at 11:05.</li>
+      <li>Submit a reset request at 11:11.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Step 1: each of the 5 requests shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Step 2 (6th request within 60 minutes, business rule BR-4): the page shows &quot;Too many requests. Try again later.&quot;</li>
+      <li>Step 3: the 10:00 request has left the window, so the request is accepted and shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Step 4: 5 accepted requests (10:10 to 10:40 and 11:01) are inside the window, so the page shows &quot;Too many requests. Try again later.&quot;</li>
+      <li>Step 5: the 10:10 request has left the window and the blocked requests did not count, so the request is accepted and shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-022">
+    <h4><span class="tc-id">TC-FUN-022</span>Open a valid reset link and see the new password form</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code></li>
+      <li>A reset link was requested for <code>anna.test@example.com</code> 5 minutes ago; it is the only link requested in the last 60 minutes and it has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Reset link age: 5 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the reset email in the test mailbox of <code>anna.test@example.com</code>.</li>
+      <li>Click the reset link.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A page opens with a &quot;New password&quot; field and a &quot;Confirm password&quot; field.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-023">
+    <h4><span class="tc-id">TC-FUN-023</span>Invalidate an older reset link when a new link is requested (BR-1)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-10</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Karl Supersede with email <code>karl.supersede@example.com</code></li>
+      <li>The tester has access to the test mailbox of <code>karl.supersede@example.com</code></li>
+      <li>No reset request was made for <code>karl.supersede@example.com</code> in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>karl.supersede@example.com</code></li>
+      <li>Link #1: link from the first reset email</li>
+      <li>Link #2: link from the second reset email</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Request a reset link for <code>karl.supersede@example.com</code> and wait for the first reset email (link #1).</li>
+      <li>Request another reset link for <code>karl.supersede@example.com</code> and wait for the second reset email (link #2).</li>
+      <li>Open link #1.</li>
+      <li>Open link #2.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Link #1 shows &quot;This link has expired. Please request a new one.&quot; and a &quot;Request a new link&quot; button (business rule BR-1).</li>
+      <li>Link #2 opens the page with the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-024">
+    <h4><span class="tc-id">TC-FUN-024</span>Show the expired-link page for a link opened 75 minutes after sending (BR-3)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Lena Timeout with email <code>lena.timeout@example.com</code></li>
+      <li>A reset link was sent to <code>lena.timeout@example.com</code> 75 minutes ago; it is the latest link and it has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Reset link age: 75 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the reset email in the test mailbox of <code>lena.timeout@example.com</code>.</li>
+      <li>Click the reset link.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;This link has expired. Please request a new one.&quot; (business rule BR-3: a link expires 60 minutes after it was sent).</li>
+      <li>A &quot;Request a new link&quot; button is displayed.</li>
+      <li>The &quot;New password&quot; and &quot;Confirm password&quot; fields are not displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-025">
+    <h4><span class="tc-id">TC-FUN-025</span>Open the &quot;Reset password&quot; page from the &quot;Request a new link&quot; button</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-28</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An expired reset link was opened, and the page shows &quot;This link has expired. Please request a new one.&quot; with a &quot;Request a new link&quot; button</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>None</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Click &quot;Request a new link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page opens with the email address input field and the &quot;Send reset link&quot; button.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-026">
+    <h4><span class="tc-id">TC-FUN-026</span>Reset the password with a valid matching new password</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-16, AC-17, AC-18</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>anna.test@example.com</code> was sent 5 minutes ago and is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3w-Passw0rd!</code></li>
+      <li>Confirm password: <code>N3w-Passw0rd!</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>N3w-Passw0rd!</code> into the &quot;New password&quot; field.</li>
+      <li>Enter <code>N3w-Passw0rd!</code> into the &quot;Confirm password&quot; field.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>No password error message is shown.</li>
+      <li>The user is automatically redirected to the login page.</li>
+      <li>The login page shows the message &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-027">
+    <h4><span class="tc-id">TC-FUN-027</span>Accept a new password with a length inside the 8-64 character range (BR-5)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Mia Length with email <code>mia.length@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>mia.length@example.com</code> is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Lumen2026abc</code> (12 characters)</li>
+      <li>Confirm password: <code>Lumen2026abc</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Lumen2026abc</code> into the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is not shown (business rule BR-5 length rule).</li>
+      <li>The user is redirected to the login page, which shows &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-028">
+    <h4><span class="tc-id">TC-FUN-028</span>Accept a new password with uppercase Latin letters and digits only (BR-5)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Noah Mix with email <code>noah.mix@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>noah.mix@example.com</code> is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>QWERTY12345Z</code> (uppercase Latin letters and digits, 12 characters)</li>
+      <li>Confirm password: <code>QWERTY12345Z</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>QWERTY12345Z</code> into the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must contain at least one letter and one digit.&quot; is not shown (business rule BR-5 letter and digit rule).</li>
+      <li>The user is redirected to the login page, which shows &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-029">
+    <h4><span class="tc-id">TC-FUN-029</span>Accept a new password with special characters and no spaces (BR-5)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-24</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Olga Symbol with email <code>olga.symbol@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>olga.symbol@example.com</code> is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>P@ss#2026_!~</code> (12 characters, special characters, no spaces)</li>
+      <li>Confirm password: <code>P@ss#2026_!~</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>P@ss#2026_!~</code> into the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must not contain spaces.&quot; is not shown and no other password error is shown (business rule BR-5 allows special characters other than spaces).</li>
+      <li>The user is redirected to the login page, which shows &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-030">
+    <h4><span class="tc-id">TC-FUN-030</span>Accept a new password that differs from the current password (BR-6)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-25</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Paul Differ with email <code>paul.differ@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>paul.differ@example.com</code> is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Old-Passw0rd2</code> (differs from the current password by the last character)</li>
+      <li>Confirm password: <code>Old-Passw0rd2</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Old-Passw0rd2</code> into the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;New password must be different from your current password.&quot; is not shown (business rule BR-6).</li>
+      <li>The user is redirected to the login page, which shows &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-031">
+    <h4><span class="tc-id">TC-FUN-031</span>Complete the reset after correcting a password with several rule violations (BR-11)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-30</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Rita Correct with email <code>rita.correct@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>A valid, unused reset link for <code>rita.correct@example.com</code> is open, showing the &quot;New password&quot; and &quot;Confirm password&quot; fields</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>First attempt: New password <code>ab c</code>, Confirm password <code>abcd</code></li>
+      <li>Second attempt: New password <code>N3w-Passw0rd!</code>, Confirm password <code>N3w-Passw0rd!</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>ab c</code> into &quot;New password&quot; and <code>abcd</code> into &quot;Confirm password&quot;.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+      <li>Replace both values with <code>N3w-Passw0rd!</code>.</li>
+      <li>Click &quot;Save new password&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>After step 2, these messages are shown at the same time: &quot;Password must be 8-64 characters long.&quot;, &quot;Password must contain at least one letter and one digit.&quot;, &quot;Password must not contain spaces.&quot;, and &quot;Passwords do not match.&quot; (business rule BR-11).</li>
+      <li>After step 2, &quot;New password must be different from your current password.&quot; is not shown, and the password is not changed.</li>
+      <li>After step 4, the user is redirected to the login page, which shows &quot;Your password has been changed&quot;.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-032">
+    <h4><span class="tc-id">TC-FUN-032</span>Sign out sessions that existed before the reset</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-19</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Sara Session with email <code>sara.session@example.com</code> and current password <code>Old-Passw0rd1</code></li>
+      <li>Browser B (for example Firefox) has a logged-in Notely session for <code>sara.session@example.com</code>, created before the reset</li>
+      <li>Browser A (for example Chrome) is not logged in to Notely</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3w-Passw0rd!</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>In browser A, request a reset link for <code>sara.session@example.com</code>, open the link, and set the new password <code>N3w-Passw0rd!</code> in both fields.</li>
+      <li>Confirm in browser A that the login page shows &quot;Your password has been changed&quot;.</li>
+      <li>In browser B, open any note or click any navigation item in the logged-in session.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>In browser B, the action is not performed; the login page is shown and a new login is required.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-033">
+    <h4><span class="tc-id">TC-FUN-033</span>Log in with the new password after a successful reset</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-20</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Anna Test with email <code>anna.test@example.com</code></li>
+      <li>The password of this account was just reset from <code>Old-Passw0rd1</code> to <code>N3w-Passw0rd!</code> through a reset link</li>
+      <li>The login page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Password: <code>N3w-Passw0rd!</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>anna.test@example.com</code> into the email field of the login page.</li>
+      <li>Enter <code>N3w-Passw0rd!</code> into the password field.</li>
+      <li>Click the login button.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login succeeds and the user sees the logged-in Notely start page.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-034">
+    <h4><span class="tc-id">TC-FUN-034</span>Reject the previous password after the password changes to the new one</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-20</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Tom Switch with email <code>tom.switch@example.com</code> and password <code>Old-Passw0rd1</code></li>
+      <li>The tester is not logged in to Notely</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>tom.switch@example.com</code></li>
+      <li>Previous password: <code>Old-Passw0rd1</code></li>
+      <li>New password: <code>N3w-Passw0rd!</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Request a reset link for <code>tom.switch@example.com</code>, open it, set <code>N3w-Passw0rd!</code> in both fields, and click &quot;Save new password&quot;.</li>
+      <li>On the login page, enter <code>tom.switch@example.com</code> and the previous password <code>Old-Passw0rd1</code>, then click the login button.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>After step 1, the login page shows &quot;Your password has been changed&quot;.</li>
+      <li>After step 2, the login is rejected: the user stays on the login page and is not logged in.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-035">
+    <h4><span class="tc-id">TC-FUN-035</span>Show the expired-link page when a used link is opened again (BR-3)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-13</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists for Uwe Reuse with email <code>uwe.reuse@example.com</code></li>
+      <li>The password of this account was successfully reset 5 minutes ago through the latest reset link (link #1)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link #1: the reset link that was used for the successful reset</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open link #1 from the reset email again.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;This link has expired. Please request a new one.&quot; (business rule BR-3: a reset link is single-use).</li>
+      <li>A &quot;Request a new link&quot; button is displayed.</li>
+      <li>The &quot;New password&quot; and &quot;Confirm password&quot; fields are not displayed.</li>
+    </ul>
+  </section>
+  <h3>5.2 Negative and security</h3>
+  <section class="tc" id="TC-NEG-001">
+    <h4><span class="tc-id">TC-NEG-001</span>Reject reset request with an empty email field</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3, AC-21</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The user is not logged in</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: empty value</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Leave the email address field empty.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The inline error &quot;Enter a valid email address.&quot; is displayed next to the email field.</li>
+      <li>The message &quot;If an account exists for this email, we sent a reset link.&quot; is not displayed.</li>
+      <li>No reset request is sent to the server (no request is visible in the browser network log) and no email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-002">
+    <h4><span class="tc-id">TC-NEG-002</span>Show identical response for an unregistered email address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4, AC-5</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>No account exists with email <code>ghost.user@example.com</code></li>
+      <li>Neither address has reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Registered email: <code>anna.test@example.com</code></li>
+      <li>Unregistered email: <code>ghost.user@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page, enter <code>anna.test@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Save the displayed page (screenshot and response body from the browser network log).</li>
+      <li>Open the &quot;Reset password&quot; page again, enter <code>ghost.user@example.com</code>, and click &quot;Send reset link&quot;.</li>
+      <li>Save the displayed page (screenshot and response body).</li>
+      <li>Compare both saved pages and responses.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both pages show exactly &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Both pages contain the same fields and buttons, and the HTTP status codes of both responses are identical.</li>
+      <li>Neither page nor response contains text, fields, or data that indicate whether the account exists.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-003">
+    <h4><span class="tc-id">TC-NEG-003</span>Show identical response and send no email for a deactivated account</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4, AC-5, AC-9</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A deactivated account exists with email <code>ben.inactive@example.com</code></li>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>Neither address has reset requests in the last 60 minutes</li>
+      <li>Access to the test mailbox of <code>ben.inactive@example.com</code> is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Deactivated email: <code>ben.inactive@example.com</code></li>
+      <li>Active email: <code>anna.test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>anna.test@example.com</code> and save the displayed page and response.</li>
+      <li>Submit a reset request for <code>ben.inactive@example.com</code> and save the displayed page and response.</li>
+      <li>Compare both pages and responses.</li>
+      <li>Wait 5 minutes and check the mailbox of <code>ben.inactive@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both pages show exactly &quot;If an account exists for this email, we sent a reset link.&quot; with the same fields, buttons, and HTTP status code.</li>
+      <li>No text on the page indicates that the account is deactivated.</li>
+      <li>No reset email arrives in the mailbox of <code>ben.inactive@example.com</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-004">
+    <h4><span class="tc-id">TC-NEG-004</span>Keep response time independent of account existence</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Active accounts exist for <code>anna.test@example.com</code> and <code>carl.demo@example.com</code></li>
+      <li>No accounts exist for <code>ghost.user@example.com</code> and <code>nobody.demo@example.com</code></li>
+      <li>None of the addresses has reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Registered emails: <code>anna.test@example.com</code>, <code>carl.demo@example.com</code></li>
+      <li>Unregistered emails: <code>ghost.user@example.com</code>, <code>nobody.demo@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit one reset request for each registered address and record the server response time from the browser network log.</li>
+      <li>Submit one reset request for each unregistered address and record the server response time.</li>
+      <li>Repeat steps 1-2 twice more, using the same addresses (staying within 5 requests per address).</li>
+      <li>Compare the response times of the registered group with those of the unregistered group.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The response times of the registered group and the unregistered group overlap; there is no consistent gap that sorts every registered address into one group and every unregistered address into the other.</li>
+      <li>All responses show the message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-005">
+    <h4><span class="tc-id">TC-NEG-005</span>Keep response neutral when the email service is unavailable</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5, AC-8</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>No account exists with email <code>ghost.user@example.com</code></li>
+      <li>The outgoing email service is made unavailable in the test environment (for example, the SMTP stub is stopped)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Registered email: <code>anna.test@example.com</code></li>
+      <li>Unregistered email: <code>ghost.user@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>anna.test@example.com</code> and save the displayed page.</li>
+      <li>Submit a reset request for <code>ghost.user@example.com</code> and save the displayed page.</li>
+      <li>Compare both pages.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both pages are identical in message, fields, and buttons.</li>
+      <li>Neither page shows a stack trace, a technical error text, a server name, or any hint that an email could not be delivered to an existing account.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-006">
+    <h4><span class="tc-id">TC-NEG-006</span>Apply the rate limit to an unregistered address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6, AC-7</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>No account exists with email <code>ghost.user@example.com</code></li>
+      <li>The address has no reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>ghost.user@example.com</code></li>
+      <li>Number of requests: 8 within 5 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit 8 reset requests for <code>ghost.user@example.com</code> within 5 minutes.</li>
+      <li>Record the message shown after each request.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Requests 1-5 show &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>Requests 6-8 show &quot;Too many requests. Try again later.&quot;</li>
+      <li>The sequence of messages is the same as for a registered address, so the rate limit does not reveal whether the account exists.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-007">
+    <h4><span class="tc-id">TC-NEG-007</span>Block excess requests in a burst of 10 requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7, AC-26</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The address has no reset requests in the last 60 minutes</li>
+      <li>Access to the test mailbox of <code>anna.test@example.com</code> is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Number of requests: 10 within 5 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit 10 reset requests for <code>anna.test@example.com</code> within 5 minutes.</li>
+      <li>Record the message shown after each request.</li>
+      <li>Wait 5 minutes and count the reset emails in the mailbox.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Requests 6-10 show &quot;Too many requests. Try again later.&quot;</li>
+      <li>Exactly 5 reset emails arrive in the mailbox; requests 6-10 produce no email.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-008">
+    <h4><span class="tc-id">TC-NEG-008</span>Enforce the rate limit for concurrent parallel requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6, AC-7</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The address has no reset requests in the last 60 minutes</li>
+      <li>An HTTP client that can send parallel requests is available (for example, a load test tool)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Number of parallel requests: 20, sent at the same moment</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Send 20 reset requests for <code>anna.test@example.com</code> in parallel.</li>
+      <li>Count the responses with &quot;If an account exists for this email, we sent a reset link.&quot; and with &quot;Too many requests. Try again later.&quot;</li>
+      <li>Wait 5 minutes and count the reset emails in the mailbox.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>At most 5 responses show &quot;If an account exists for this email, we sent a reset link.&quot;; all other responses show &quot;Too many requests. Try again later.&quot;</li>
+      <li>At most 5 reset emails arrive in the mailbox.</li>
+      <li>No response returns a server error.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-009">
+    <h4><span class="tc-id">TC-NEG-009</span>Build the reset link from the trusted domain despite a forged Host header</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>An intercepting proxy is available to modify request headers</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Forged headers: <code>Host: attacker-demo.example.net</code> and <code>X-Forwarded-Host: attacker-demo.example.net</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>anna.test@example.com</code> through the proxy.</li>
+      <li>Replace the <code>Host</code> header with <code>attacker-demo.example.net</code> and add <code>X-Forwarded-Host: attacker-demo.example.net</code> before forwarding the request.</li>
+      <li>Open the received reset email and inspect the reset link.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Either the request is rejected by the server, or the reset email contains a link that points to the official Notely domain.</li>
+      <li>No reset email contains a link to <code>attacker-demo.example.net</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-010">
+    <h4><span class="tc-id">TC-NEG-010</span>Generate unpredictable HTTPS reset links</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8, AC-11</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://owasp.github.io/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/04-Authentication_Testing/09-Testing_for_Weak_Password_Change_or_Reset_Functionalities">https://owasp.github.io/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/04-Authentication_Testing/09-Testing_for_Weak_Password_Change_or_Reset_Functionalities</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Active accounts exist for <code>anna.test@example.com</code> and <code>carl.demo@example.com</code></li>
+      <li>Neither address has reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Emails: <code>anna.test@example.com</code>, <code>carl.demo@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit two reset requests for <code>anna.test@example.com</code>, one minute apart.</li>
+      <li>Submit one reset request for <code>carl.demo@example.com</code>.</li>
+      <li>Compare the tokens of the three received reset links.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>All three links start with <code>https://</code>.</li>
+      <li>All three tokens are different, have no visible sequential pattern, and do not contain the email address, the user ID, or a readable timestamp.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-011">
+    <h4><span class="tc-id">TC-NEG-011</span>Reject a reset request that carries two email addresses</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8, AC-21</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>An intercepting proxy is available</li>
+      <li>Access to the test mailboxes of <code>anna.test@example.com</code> and <code>mallory.demo@example.org</code> is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Variant A: request body with a duplicated parameter <code>email=anna.test@example.com&amp;email=mallory.demo@example.org</code></li>
+      <li>Variant B: field value <code>anna.test@example.com,mallory.demo@example.org</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>anna.test@example.com</code> through the proxy and change the body to variant A.</li>
+      <li>Submit a reset request using the field value of variant B.</li>
+      <li>Wait 5 minutes and check both mailboxes.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Variant B shows &quot;Enter a valid email address.&quot;</li>
+      <li>No reset email arrives in the mailbox of <code>mallory.demo@example.org</code> for either variant.</li>
+      <li>No response shows a server error.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-014">
+    <h4><span class="tc-id">TC-NEG-014</span>Reject a password submitted from a form opened by a superseded link</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-10</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>The address has no reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>New password: <code>N3wPass2026</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request and open the received link 1 in browser tab A; the password form is displayed.</li>
+      <li>In browser tab B, submit a new reset request for the same address and wait for link 2.</li>
+      <li>In tab A, enter <code>N3wPass2026</code> in &quot;New password&quot; and &quot;Confirm password&quot; and submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>, then with <code>N3wPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The submission in tab A is rejected and the page shows &quot;This link has expired. Please request a new one.&quot;</li>
+      <li>Login with <code>OldPass2026</code> succeeds; login with <code>N3wPass2026</code> is rejected.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-015">
+    <h4><span class="tc-id">TC-NEG-015</span>Deny the password form for a tampered or missing reset token</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>A valid reset link was received for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Variant A: the valid token with its last character changed</li>
+      <li>Variant B: the link with the token parameter removed</li>
+      <li>Variant C: the link with the token replaced by <code>' OR '1'='1</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the reset link using variant A.</li>
+      <li>Open the reset link using variant B.</li>
+      <li>Open the reset link using variant C.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>For every variant, the &quot;New password&quot; and &quot;Confirm password&quot; fields are not displayed.</li>
+      <li>No page shows the account email address, a stack trace, or a database error.</li>
+      <li>The original valid link still opens the password form afterwards.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-016">
+    <h4><span class="tc-id">TC-NEG-016</span>Prevent resetting another user's password with a valid token</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Active accounts exist for <code>anna.test@example.com</code> (password <code>OldPass2026</code>) and <code>carl.demo@example.com</code> (password <code>CarlPass2026</code>)</li>
+      <li>A valid reset link was received for <code>anna.test@example.com</code></li>
+      <li>An intercepting proxy is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3wPass2026</code></li>
+      <li>Added parameters: <code>email=carl.demo@example.com</code> and, if a user identifier is visible in the request, the identifier of Carl's account</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open Anna's reset link and enter <code>N3wPass2026</code> in both password fields.</li>
+      <li>Before forwarding the submission, add <code>email=carl.demo@example.com</code> (and Carl's user identifier, if the request contains one) to the request body.</li>
+      <li>Try to log in as <code>carl.demo@example.com</code> with <code>CarlPass2026</code>, then with <code>N3wPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Login as <code>carl.demo@example.com</code> with <code>CarlPass2026</code> succeeds.</li>
+      <li>Login as <code>carl.demo@example.com</code> with <code>N3wPass2026</code> is rejected.</li>
+      <li>Carl's existing sessions remain active.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-018">
+    <h4><span class="tc-id">TC-NEG-018</span>Reject a password submission after the link expired while the form was open</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A reset link was sent 30 minutes ago</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3wPass2026</code></li>
+      <li>Waiting time with the open form: 45 minutes (link age at submission: 75 minutes)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the reset link; the password form is displayed.</li>
+      <li>Leave the form open for 45 minutes.</li>
+      <li>Enter <code>N3wPass2026</code> in both password fields and submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The submission is rejected and the page shows &quot;This link has expired. Please request a new one.&quot;</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-020">
+    <h4><span class="tc-id">TC-NEG-020</span>Reject a replayed password submission with a used token</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-13</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>An intercepting proxy is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>First new password: <code>N3wPass2026</code></li>
+      <li>Replayed new password: <code>Attack3rPass9</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the reset link and submit <code>N3wPass2026</code> in both password fields; capture the submission request in the proxy.</li>
+      <li>Resend the captured request with both password values changed to <code>Attack3rPass9</code>.</li>
+      <li>Try to log in with <code>Attack3rPass9</code>, then with <code>N3wPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The replayed request is rejected and does not change the password.</li>
+      <li>Login with <code>Attack3rPass9</code> is rejected; login with <code>N3wPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-021">
+    <h4><span class="tc-id">TC-NEG-021</span>Reject a clearly too short new password</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>ab12</code> (4 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>ab12</code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is displayed.</li>
+      <li>No other password error message is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-022">
+    <h4><span class="tc-id">TC-NEG-022</span>Reject a clearly too long new password</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>Pass1</code> repeated 20 times (100 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter the 100-character value in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-023">
+    <h4><span class="tc-id">TC-NEG-023</span>Reject a new password without a digit</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>NotelyPassword</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>NotelyPassword</code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must contain at least one letter and one digit.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-024">
+    <h4><span class="tc-id">TC-NEG-024</span>Reject a new password without a Latin letter</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>20262026!#</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>20262026!#</code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must contain at least one letter and one digit.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-025">
+    <h4><span class="tc-id">TC-NEG-025</span>Reject a new password whose only letters are non-Latin</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>пароль2026</code> (Cyrillic letters and digits)</li>
+      <li>New password and confirmation (second attempt): <code>éèàü2026</code> (accented letters and digits)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>пароль2026</code> in &quot;New password&quot; and &quot;Confirm password&quot; and submit the form.</li>
+      <li>Enter <code>éèàü2026</code> in &quot;New password&quot; and &quot;Confirm password&quot; and submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>After each submission, the message &quot;Password must contain at least one letter and one digit.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-026">
+    <h4><span class="tc-id">TC-NEG-026</span>Reject mismatching new and confirmation passwords</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-16</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3wPass2026</code></li>
+      <li>Confirm password: <code>N3wPass2027</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>N3wPass2026</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>N3wPass2027</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>, then with <code>N3wPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Passwords do not match.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; login with <code>N3wPass2026</code> is rejected.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-028">
+    <h4><span class="tc-id">TC-NEG-028</span>Reject a replayed pre-reset session cookie</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-19</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>The user is logged in and the session cookie value was copied before the reset</li>
+      <li>An HTTP client (for example, a proxy or command-line client) is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Copied pre-reset session cookie</li>
+      <li>New password: <code>N3wPass2026</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Complete the password reset with <code>N3wPass2026</code> through a valid reset link.</li>
+      <li>Send a request for the notes list with the copied pre-reset session cookie.</li>
+      <li>Send a request that creates a note titled <code>Demo note</code> with the copied cookie.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both requests are rejected as unauthenticated (redirect to the login page or HTTP 401).</li>
+      <li>No notes data is returned and no note titled <code>Demo note</code> is created.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-030">
+    <h4><span class="tc-id">TC-NEG-030</span>Keep the current password after a failed reset attempt</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-20, AC-14</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Rejected new password: <code>ab12</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>ab12</code> in both password fields and submit the form.</li>
+      <li>Open the login page.</li>
+      <li>Log in with <code>anna.test@example.com</code> and <code>ab12</code>.</li>
+      <li>Log in with <code>anna.test@example.com</code> and <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The form shows &quot;Password must be 8-64 characters long.&quot;</li>
+      <li>Login with <code>ab12</code> is rejected.</li>
+      <li>Login with <code>OldPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-031">
+    <h4><span class="tc-id">TC-NEG-031</span>Reject an email address consisting only of spaces</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21, AC-22</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: five space characters</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter five spaces in the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The inline error &quot;Enter a valid email address.&quot; is displayed.</li>
+      <li>The message &quot;If an account exists for this email, we sent a reset link.&quot; is not displayed and no email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-032">
+    <h4><span class="tc-id">TC-NEG-032</span>Reject an email address without the @ sign</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.testexample.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>anna.testexample.com</code> in the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The inline error &quot;Enter a valid email address.&quot; is displayed.</li>
+      <li>No reset request is sent and no email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-033">
+    <h4><span class="tc-id">TC-NEG-033</span>Reject email addresses with a missing domain or two @ signs</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email A: <code>anna.test@</code></li>
+      <li>Email B: <code>anna@@example.com</code></li>
+      <li>Email C: <code>anna.test@exa_mple!.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter email A and click &quot;Send reset link&quot;.</li>
+      <li>Enter email B and click &quot;Send reset link&quot;.</li>
+      <li>Enter email C and click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>After each submission, the inline error &quot;Enter a valid email address.&quot; is displayed.</li>
+      <li>No reset request is sent and no email is sent for any of the values.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-035">
+    <h4><span class="tc-id">TC-NEG-035</span>Handle SQL-injection-like text in the email field safely</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email A: <code>' OR '1'='1</code></li>
+      <li>Email B: <code>anna.test@example.com' OR '1'='1</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter email A and click &quot;Send reset link&quot;.</li>
+      <li>Enter email B and click &quot;Send reset link&quot;.</li>
+      <li>Repeat steps 1-2 through an intercepting proxy, bypassing the browser validation.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Every submission shows &quot;Enter a valid email address.&quot;</li>
+      <li>No response contains a database error, stack trace, or account data.</li>
+      <li>No reset email is sent to any account.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-036">
+    <h4><span class="tc-id">TC-NEG-036</span>Do not execute script input in the email field</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-21</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>&lt;script&gt;alert(1)&lt;/script&gt;@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter the test value in the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+      <li>Repeat the submission through an intercepting proxy, bypassing the browser validation.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The inline error &quot;Enter a valid email address.&quot; is displayed.</li>
+      <li>No alert dialog appears; if the value is shown on the page, it is shown as plain text.</li>
+      <li>No reset email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-037">
+    <h4><span class="tc-id">TC-NEG-037</span>Prevent rate limit bypass with case and space variants</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-22, AC-7</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>5 accepted reset requests for <code>anna.test@example.com</code> were made within the last 10 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Variant A: <code>ANNA.TEST@EXAMPLE.COM</code></li>
+      <li>Variant B: <code>  Anna.Test@Example.com </code> (leading and trailing spaces)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request with variant A.</li>
+      <li>Submit a reset request with variant B.</li>
+      <li>Wait 5 minutes and count new reset emails in the mailbox.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both requests show &quot;Too many requests. Try again later.&quot;</li>
+      <li>No new reset email arrives in the mailbox.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-038">
+    <h4><span class="tc-id">TC-NEG-038</span>Reject an email address with a space inside it</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-22, AC-21</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna .test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>anna .test@example.com</code> in the email address field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The inline error &quot;Enter a valid email address.&quot; is displayed.</li>
+      <li>No reset request is sent and no email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-039">
+    <h4><span class="tc-id">TC-NEG-039</span>Send no email for a case variant of a deactivated account address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-22, AC-9</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A deactivated account exists with email <code>ben.inactive@example.com</code></li>
+      <li>The address has no reset requests in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>  BEN.Inactive@Example.COM </code> (leading and trailing spaces, mixed case)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request with the test value.</li>
+      <li>Wait 5 minutes and check the mailbox of <code>ben.inactive@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>No reset email arrives in the mailbox of <code>ben.inactive@example.com</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-040">
+    <h4><span class="tc-id">TC-NEG-040</span>Truncate pasted text far longer than 254 characters</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-23</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Clipboard text: 400 characters (<code>a</code> repeated 388 times followed by <code>@example.com</code>)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Paste the 400-character text into the email address field.</li>
+      <li>Count the characters in the field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The field contains exactly the first 254 characters of the pasted text.</li>
+      <li>The submission shows &quot;Enter a valid email address.&quot; because the truncated value has no <code>@</code> sign.</li>
+      <li>No email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-041">
+    <h4><span class="tc-id">TC-NEG-041</span>Reject a new password with a space in the middle</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-24</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>Notely 2026pass</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Notely 2026pass</code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>OldPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must not contain spaces.&quot; is displayed.</li>
+      <li>Login with <code>OldPass2026</code> succeeds; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-042">
+    <h4><span class="tc-id">TC-NEG-042</span>Reject a new password with leading and trailing spaces</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-24</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code> N3wPass2026 </code> (one leading and one trailing space)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code> N3wPass2026 </code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Try to log in with <code>N3wPass2026</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must not contain spaces.&quot; is displayed; the spaces are not silently removed.</li>
+      <li>Login with <code>N3wPass2026</code> is rejected; the password is not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-043">
+    <h4><span class="tc-id">TC-NEG-043</span>Reject a new password equal to the current password</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-25</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password and confirmation: <code>OldPass2026</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>OldPass2026</code> in &quot;New password&quot; and &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+      <li>Open the same reset link again.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;New password must be different from your current password.&quot; is displayed.</li>
+      <li>The reset link is not consumed: opening it again shows the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-044">
+    <h4><span class="tc-id">TC-NEG-044</span>Skip the current-password check while the confirmation does not match</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-25, AC-16</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>OldPass2026</code></li>
+      <li>Confirm password: <code>OldPass2027</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>OldPass2026</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>OldPass2027</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Passwords do not match.&quot; is displayed.</li>
+      <li>The message &quot;New password must be different from your current password.&quot; is not displayed.</li>
+      <li>The password is not changed; login with <code>OldPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-045">
+    <h4><span class="tc-id">TC-NEG-045</span>Keep an earlier reset link valid after a blocked request</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-26, AC-10</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>5 accepted reset requests for this address were made within the last 10 minutes; the link from the 5th request is kept as &quot;link 5&quot;</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>N3wPass2026</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a further reset request for <code>anna.test@example.com</code>.</li>
+      <li>Open link 5.</li>
+      <li>Enter <code>N3wPass2026</code> in both password fields and submit the form.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Step 1 shows &quot;Too many requests. Try again later.&quot; and no new email arrives.</li>
+      <li>Link 5 opens the &quot;New password&quot; and &quot;Confirm password&quot; fields.</li>
+      <li>The password is changed; login with <code>N3wPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-046">
+    <h4><span class="tc-id">TC-NEG-046</span>Keep blocking requests while 5 accepted requests remain in the window</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-27, AC-7</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>5 accepted reset requests for this address were made between 30 and 25 minutes ago</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for <code>anna.test@example.com</code>.</li>
+      <li>Wait 10 minutes and submit another reset request.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both requests show &quot;Too many requests. Try again later.&quot;</li>
+      <li>No reset email is sent for either request.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-047">
+    <h4><span class="tc-id">TC-NEG-047</span>Reject an overlong email address that bypasses the UI limit</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-29</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An intercepting proxy or HTTP client is available</li>
+      <li>No reset requests were made for the test address in the last 60 minutes</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>a</code> repeated 288 times followed by <code>@example.com</code> (300 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit a reset request for a short valid address and intercept it in the proxy.</li>
+      <li>Replace the email value with the 300-character address and forward the request.</li>
+      <li>Repeat step 2 six more times.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Every response shows &quot;Enter a valid email address.&quot;</li>
+      <li>No reset email is sent.</li>
+      <li>None of the 7 submissions shows &quot;Too many requests. Try again later.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-048">
+    <h4><span class="tc-id">TC-NEG-048</span>Show all violated password rule messages at the same time</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-30</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>ab cd</code> (too short, no digit, contains a space)</li>
+      <li>Confirm password: <code>xyz</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>ab cd</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>xyz</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the form.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>All four messages are displayed at the same time: &quot;Password must be 8-64 characters long.&quot;, &quot;Password must contain at least one letter and one digit.&quot;, &quot;Password must not contain spaces.&quot;, and &quot;Passwords do not match.&quot;</li>
+      <li>The password is not changed; login with <code>OldPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-049">
+    <h4><span class="tc-id">TC-NEG-049</span>Show length and composition messages when both password fields are empty</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-30, AC-14, AC-15</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPass2026</code></li>
+      <li>A valid reset link for this account is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: empty value</li>
+      <li>Confirm password: empty value</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Leave &quot;New password&quot; and &quot;Confirm password&quot; empty.</li>
+      <li>Submit the form.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The messages &quot;Password must be 8-64 characters long.&quot; and &quot;Password must contain at least one letter and one digit.&quot; are displayed at the same time.</li>
+      <li>The message &quot;Passwords do not match.&quot; is not displayed.</li>
+      <li>The password is not changed; login with <code>OldPass2026</code> succeeds.</li>
+    </ul>
+  </section>
+  <h3>5.3 Boundary and edge cases</h3>
+  <section class="tc" id="TC-EDGE-001">
+    <h4><span class="tc-id">TC-EDGE-001</span>Accept an email address of exactly 254 characters (maximum)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-23, AC-4</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690/">https://errata.rfc-editor.org/eid1690/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The user is not logged in</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email (254 characters): <code>a</code> repeated 64 times + <code>@</code> + <code>b</code> repeated 58 times + <code>.</code> + <code>c</code> repeated 58 times + <code>.</code> + <code>d</code> repeated 59 times + <code>.example.com</code> (local part 64 characters, domain 189 characters, total 254 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Type the 254-character email address into the email address field.</li>
+      <li>Check the number of characters held by the field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The field holds all 254 characters; no character is cut off.</li>
+      <li>No inline error &quot;Enter a valid email address.&quot; is shown.</li>
+      <li>The page shows the message &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-002">
+    <h4><span class="tc-id">TC-EDGE-002</span>Stop typing at 254 characters when a 255th character is typed (maximum plus one)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-23</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690/">https://errata.rfc-editor.org/eid1690/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The user is not logged in</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Typed input (255 characters): <code>a</code> repeated 64 times + <code>@</code> + <code>b</code> repeated 58 times + <code>.</code> + <code>c</code> repeated 58 times + <code>.</code> + <code>d</code> repeated 60 times + <code>.example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Type the 255-character input into the email address field character by character.</li>
+      <li>Check the number of characters held by the field.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The field holds exactly 254 characters.</li>
+      <li>The 255th typed character (the final <code>m</code> of <code>.example.com</code>) does not appear in the field.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-003">
+    <h4><span class="tc-id">TC-EDGE-003</span>Truncate a pasted 255-character email address to its first 254 characters</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-23</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690/">https://errata.rfc-editor.org/eid1690/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The user is not logged in</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Clipboard text (255 characters): <code>a</code> repeated 64 times + <code>@</code> + <code>b</code> repeated 58 times + <code>.</code> + <code>c</code> repeated 58 times + <code>.</code> + <code>d</code> repeated 60 times + <code>.example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Copy the 255-character text to the clipboard.</li>
+      <li>Paste it into the empty email address field.</li>
+      <li>Check the content and the number of characters held by the field.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The field holds exactly 254 characters.</li>
+      <li>The field content equals the first 254 characters of the pasted text, ending with <code>.example.co</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-004">
+    <h4><span class="tc-id">TC-EDGE-004</span>Reject a 255-character email address sent to the server with the UI limit bypassed</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-29</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690/">https://errata.rfc-editor.org/eid1690/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>The user is not logged in</li>
+      <li>The &quot;Reset password&quot; page is open</li>
+      <li>The tester can remove the 254-character input limit of the email address field with the browser developer tools</li>
+      <li>The test mail server captures all outgoing emails</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email (255 characters): <code>a</code> repeated 64 times + <code>@</code> + <code>b</code> repeated 58 times + <code>.</code> + <code>c</code> repeated 58 times + <code>.</code> + <code>d</code> repeated 60 times + <code>.example.com</code> (local part 64 characters, domain 190 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Remove the input length limit of the email address field with the browser developer tools.</li>
+      <li>Enter the 255-character email address into the field.</li>
+      <li>Click &quot;Send reset link&quot;.</li>
+      <li>Check the test mail server for emails sent to the address.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Enter a valid email address.&quot; is shown.</li>
+      <li>The message &quot;If an account exists for this email, we sent a reset link.&quot; is not shown.</li>
+      <li>No email is captured by the test mail server.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-009">
+    <h4><span class="tc-id">TC-EDGE-009</span>Accept a request for a different email address after 5 requests for another address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Active accounts exist with emails <code>anna.test@example.com</code> and <code>ben.test@example.com</code></li>
+      <li>5 reset requests for <code>anna.test@example.com</code> were accepted within the last 10 minutes</li>
+      <li>No reset request was made for <code>ben.test@example.com</code> in the last 60 minutes</li>
+      <li>The user is not logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>ben.test@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Reset password&quot; page.</li>
+      <li>Submit a reset request for <code>ben.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>The message &quot;Too many requests. Try again later.&quot; is not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-011">
+    <h4><span class="tc-id">TC-EDGE-011</span>Block the 6th reset request within 60 minutes for a deactivated account</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6, AC-7</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A deactivated account exists with email <code>inactive.test@example.com</code></li>
+      <li>No reset request was made for this address in the last 60 minutes</li>
+      <li>The user is not logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>inactive.test@example.com</code></li>
+      <li>Number of requests: 6 within 10 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Submit 5 reset requests for <code>inactive.test@example.com</code> on the &quot;Reset password&quot; page.</li>
+      <li>Submit a 6th reset request for the same address.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Requests 1 to 5 each show &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>The 6th request shows &quot;Too many requests. Try again later.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-012">
+    <h4><span class="tc-id">TC-EDGE-012</span>Block a request 59 min 59 s after the first of 5 accepted requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7, AC-27</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>5 reset requests for this address were accepted at T0, T0+1 min, T0+2 min, T0+3 min, and T0+4 min</li>
+      <li>The user is not logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Time of the new request: T0 + 59 min 59 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 59 min 59 s, open the &quot;Reset password&quot; page.</li>
+      <li>Submit a reset request for <code>anna.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;Too many requests. Try again later.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-013">
+    <h4><span class="tc-id">TC-EDGE-013</span>Accept a request 60 min 01 s after the first of 5 accepted requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-27</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>5 reset requests for this address were accepted at T0, T0+1 min, T0+2 min, T0+3 min, and T0+4 min</li>
+      <li>The user is not logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Time of the new request: T0 + 60 min 01 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 60 min 01 s, open the &quot;Reset password&quot; page.</li>
+      <li>Submit a reset request for <code>anna.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>The message &quot;Too many requests. Try again later.&quot; is not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-014">
+    <h4><span class="tc-id">TC-EDGE-014</span>Block the next request after one slot of the rolling window was freed and used</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7, AC-27</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>Reset requests for this address were accepted at T0, T0+1 min, T0+2 min, T0+3 min, T0+4 min, and T0+60 min 01 s</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Time of the new request: T0 + 60 min 30 s (5 accepted requests remain in the last 60 minutes: T0+1 min to T0+4 min and T0+60 min 01 s)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 60 min 30 s, open the &quot;Reset password&quot; page.</li>
+      <li>Submit a reset request for <code>anna.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;Too many requests. Try again later.&quot;</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-015">
+    <h4><span class="tc-id">TC-EDGE-015</span>Do not extend the rolling window with blocked requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-27, AC-7</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>5 reset requests for this address were accepted at T0, T0+1 min, T0+2 min, T0+3 min, and T0+4 min</li>
+      <li>Blocked requests (&quot;Too many requests. Try again later.&quot;) for this address were made at T0+30 min and T0+59 min</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Email: <code>anna.test@example.com</code></li>
+      <li>Time of the new request: T0 + 60 min 01 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 60 min 01 s, open the &quot;Reset password&quot; page.</li>
+      <li>Submit a reset request for <code>anna.test@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;If an account exists for this email, we sent a reset link.&quot;</li>
+      <li>The message &quot;Too many requests. Try again later.&quot; is not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-016">
+    <h4><span class="tc-id">TC-EDGE-016</span>Open a reset link 59 min 59 s after it was sent (last valid moment)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>A reset link was sent to this address at T0; it is the latest link and has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link age when opened: 59 min 59 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 59 min 59 s, open the reset link from the email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A page with the fields &quot;New password&quot; and &quot;Confirm password&quot; is shown.</li>
+      <li>The message &quot;This link has expired. Please request a new one.&quot; is not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-017">
+    <h4><span class="tc-id">TC-EDGE-017</span>Show expired message for a reset link opened exactly 60 min 00 s after sending</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>A reset link was sent to this address at T0; it is the latest link and has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link age when opened: 60 min 00 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At exactly T0 + 60 min 00 s, open the reset link from the email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;This link has expired. Please request a new one.&quot;</li>
+      <li>A &quot;Request a new link&quot; button is shown.</li>
+      <li>The fields &quot;New password&quot; and &quot;Confirm password&quot; are not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-018">
+    <h4><span class="tc-id">TC-EDGE-018</span>Show expired message for a reset link opened 60 min 01 s after sending</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock, or the tester waits for the stated time</li>
+      <li>A reset link was sent to this address at T0; it is the latest link and has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link age when opened: 60 min 01 s</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>At T0 + 60 min 01 s, open the reset link from the email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;This link has expired. Please request a new one.&quot;</li>
+      <li>A &quot;Request a new link&quot; button is shown.</li>
+      <li>The fields &quot;New password&quot; and &quot;Confirm password&quot; are not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-019">
+    <h4><span class="tc-id">TC-EDGE-019</span>Accept a reset link opened after midnight and year end at 59 min 59 s of age</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-low">Low</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The test environment allows setting the server clock</li>
+      <li>A reset link was sent to this address on 2026-12-31 at 23:30:00 server time; it is the latest link and has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link sent: 2026-12-31 23:30:00</li>
+      <li>Link opened: 2027-01-01 00:29:59 (link age 59 min 59 s)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Set the server clock to 2027-01-01 00:29:59.</li>
+      <li>Open the reset link from the email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A page with the fields &quot;New password&quot; and &quot;Confirm password&quot; is shown.</li>
+      <li>The message &quot;This link has expired. Please request a new one.&quot; is not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-020">
+    <h4><span class="tc-id">TC-EDGE-020</span>Expire a reset link across the DST fall-back when the wall clock shows 1 minute elapsed</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-low">Low</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://timechange.org/pages/time-change-europe-2026">https://timechange.org/pages/time-change-europe-2026</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code></li>
+      <li>The server and the test client use the time zone Europe/Berlin</li>
+      <li>The test environment allows setting the server clock</li>
+      <li>A reset link was sent to this address on 2026-10-25 at 02:30:00 CEST (00:30:00 UTC); it is the latest link and has not been used</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Link sent: 2026-10-25 02:30:00 CEST (00:30:00 UTC)</li>
+      <li>Link opened: 2026-10-25 02:31:00 CET (01:31:00 UTC), after clocks returned from 03:00 CEST to 02:00 CET</li>
+      <li>Real elapsed time: 61 minutes; wall-clock difference: 1 minute</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Set the server clock to 2026-10-25 01:31:00 UTC (02:31:00 CET).</li>
+      <li>Open the reset link from the email.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The page shows &quot;This link has expired. Please request a new one.&quot;</li>
+      <li>A &quot;Request a new link&quot; button is shown.</li>
+      <li>The fields &quot;New password&quot; and &quot;Confirm password&quot; are not shown.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-022">
+    <h4><span class="tc-id">TC-EDGE-022</span>Reject a new password of 7 characters (minimum minus one)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://pages.nist.gov/800-63-3/sp800-63b.html">https://pages.nist.gov/800-63-3/sp800-63b.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Zq7kkkk</code> (7 characters)</li>
+      <li>Confirm password: <code>Zq7kkkk</code> (7 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Zq7kkkk</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>Zq7kkkk</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is shown.</li>
+      <li>No other password error message is shown.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-023">
+    <h4><span class="tc-id">TC-EDGE-023</span>Accept a new password of exactly 8 characters (minimum)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://pages.nist.gov/800-63-3/sp800-63b.html">https://pages.nist.gov/800-63-3/sp800-63b.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Zq7kkkkk</code> (8 characters)</li>
+      <li>Confirm password: <code>Zq7kkkkk</code> (8 characters)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Zq7kkkkk</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>Zq7kkkkk</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>Zq7kkkkk</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login page shows &quot;Your password has been changed&quot;.</li>
+      <li>No password error message is shown.</li>
+      <li>The login with <code>Zq7kkkkk</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-024">
+    <h4><span class="tc-id">TC-EDGE-024</span>Accept a new password of exactly 64 characters (maximum)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://pages.nist.gov/800-63-3/sp800-63b.html">https://pages.nist.gov/800-63-3/sp800-63b.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password (64 characters): <code>Zq7</code> followed by 61 lowercase <code>k</code> characters</li>
+      <li>Confirm password: the same 64-character value</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter the 64-character password in &quot;New password&quot;.</li>
+      <li>Enter the same 64-character password in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with the 64-character password.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both password fields hold all 64 characters before submission.</li>
+      <li>The login page shows &quot;Your password has been changed&quot;.</li>
+      <li>The login with the full 64-character password succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-025">
+    <h4><span class="tc-id">TC-EDGE-025</span>Reject a new password of 65 characters (maximum plus one)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://pages.nist.gov/800-63-3/sp800-63b.html">https://pages.nist.gov/800-63-3/sp800-63b.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password (65 characters): <code>Zq7</code> followed by 62 lowercase <code>k</code> characters</li>
+      <li>Confirm password: the same 65-character value</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter the 65-character password in &quot;New password&quot;.</li>
+      <li>Enter the same 65-character password in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is shown.</li>
+      <li>No other password error message is shown.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-026">
+    <h4><span class="tc-id">TC-EDGE-026</span>Accept a new password with exactly one Latin letter (minimum letter count)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>q1234567</code> (8 characters: 1 Latin letter, 7 digits)</li>
+      <li>Confirm password: <code>q1234567</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>q1234567</code> in &quot;New password&quot; and in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>q1234567</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login page shows &quot;Your password has been changed&quot;.</li>
+      <li>The message &quot;Password must contain at least one letter and one digit.&quot; is not shown.</li>
+      <li>The login with <code>q1234567</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-028">
+    <h4><span class="tc-id">TC-EDGE-028</span>Accept a new password with exactly one digit (minimum digit count)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>qwertyu7</code> (8 characters: 7 Latin letters, 1 digit)</li>
+      <li>Confirm password: <code>qwertyu7</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>qwertyu7</code> in &quot;New password&quot; and in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>qwertyu7</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login page shows &quot;Your password has been changed&quot;.</li>
+      <li>The message &quot;Password must contain at least one letter and one digit.&quot; is not shown.</li>
+      <li>The login with <code>qwertyu7</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-031">
+    <h4><span class="tc-id">TC-EDGE-031</span>Accept a new password with non-Latin letters plus one Latin letter and digits</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Пароль2026z</code> (11 characters: 6 Cyrillic letters, 4 digits, 1 Latin letter)</li>
+      <li>Confirm password: <code>Пароль2026z</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Пароль2026z</code> in &quot;New password&quot; and in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>Пароль2026z</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The login page shows &quot;Your password has been changed&quot;.</li>
+      <li>No password error message is shown.</li>
+      <li>The login with <code>Пароль2026z</code> succeeds.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-034">
+    <h4><span class="tc-id">TC-EDGE-034</span>Reject a new password with a single leading space</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-24</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code> Qwerty12</code> (9 characters: 1 leading space followed by <code>Qwerty12</code>)</li>
+      <li>Confirm password: <code> Qwerty12</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code> Qwerty12</code> in &quot;New password&quot; and in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must not contain spaces.&quot; is shown.</li>
+      <li>The leading space is not silently removed and the password <code>Qwerty12</code> is not set.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-035">
+    <h4><span class="tc-id">TC-EDGE-035</span>Reject a new password with a single trailing space</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-24</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Qwerty12 </code> (9 characters: <code>Qwerty12</code> followed by 1 trailing space)</li>
+      <li>Confirm password: <code>Qwerty12 </code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Qwerty12 </code> in &quot;New password&quot; and in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Password must not contain spaces.&quot; is shown.</li>
+      <li>The trailing space is not silently removed and the password <code>Qwerty12</code> is not set.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-036">
+    <h4><span class="tc-id">TC-EDGE-036</span>Reject a confirmation that differs from the new password only in letter case</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-16</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password: <code>Qwerty12</code> (8 characters)</li>
+      <li>Confirm password: <code>qwerty12</code> (8 characters; differs only in the case of the first letter)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter <code>Qwerty12</code> in &quot;New password&quot;.</li>
+      <li>Enter <code>qwerty12</code> in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Passwords do not match.&quot; is shown.</li>
+      <li>No other password error message is shown.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-037">
+    <h4><span class="tc-id">TC-EDGE-037</span>Reject a 63-character confirmation of a 64-character new password</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-16</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>An active account exists with email <code>anna.test@example.com</code> and current password <code>OldPassw0rd!</code></li>
+      <li>A valid reset link (latest, not used, sent less than 60 minutes ago) was opened for this account</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New password (64 characters): <code>Zq7</code> followed by 61 lowercase <code>k</code> characters</li>
+      <li>Confirm password (63 characters): <code>Zq7</code> followed by 60 lowercase <code>k</code> characters</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Enter the 64-character password in &quot;New password&quot;.</li>
+      <li>Enter the 63-character password in &quot;Confirm password&quot;.</li>
+      <li>Submit the new password form.</li>
+      <li>Log in as <code>anna.test@example.com</code> with <code>OldPassw0rd!</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The message &quot;Passwords do not match.&quot; is shown.</li>
+      <li>The message &quot;Password must be 8-64 characters long.&quot; is not shown.</li>
+      <li>The login with <code>OldPassw0rd!</code> succeeds, so the password was not changed.</li>
+    </ul>
+  </section>
+  <h3>5.4 Regression</h3>
+  <p class="na">Not applicable for this run - regression analysis was not selected because the change type is new-feature (self-service password reset does not exist today, so no existing feature is changed).</p>
+
+  <h2>6. Assumptions and risks</h2>
+  <ul>
+    <li>The reset flow is available only to users who are not logged in; they start from the login page (A-1).</li>
+    <li>The 60-minute validity of a reset link is measured from the moment the reset email was sent (A-2).</li>
+    <li>AC-20 (the new password works and the previous password is rejected) is derived from the user story &quot;set a new password&quot; (A-3).</li>
+    <li>All test data (names, email addresses, passwords, domains) is fictional; <code>example.com</code>, <code>example.org</code>, and <code>example.net</code> are reserved example domains (A-4).</li>
+    <li>Non-Latin letters (for example Cyrillic or accented letters) do not satisfy the letter rule of AC-15 and are treated as other allowed characters; accepted by the user on 2026-09-23 (A-5).</li>
+    <li>Only accepted requests count toward the rolling 60-minute limit; blocked requests do not extend the window; accepted by the user on 2026-09-23 (A-6). TC-FUN-021 and TC-EDGE-015 rely on this assumption.</li>
+    <li>An email address longer than 254 characters that the server rejects (AC-29) does not count toward the rate limit, like any other invalid address (A-7). TC-NEG-047 relies on this assumption.</li>
+    <li>The requirements do not name the submit button of the new password form; the cases use &quot;Save new password&quot;. Replace it with the actual label if it differs.</li>
+    <li>The requirements do not specify the application URL; the fictional URL <code>https://notely.example.com/login</code> is used for the login page.</li>
+    <li>The requirements do not specify the reset email subject, sender, or body text; the cases check only that a Notely email with a reset link arrives.</li>
+    <li>The requirements do not specify the exact message for a rejected login with the previous password (TC-FUN-034) or the exact screen after a signed-out session action (TC-FUN-032); the cases check the observable outcome (not logged in, login page shown).</li>
+    <li>Time-based cases require a test environment with a controllable server clock or waiting in real time; time measurements use a granularity of 1 second, and the given clock times are relative examples.</li>
+    <li>Each rate-limit case uses its own fictional email address, or needs a clean 60-minute history for the address, so that requests from one case do not affect another.</li>
+    <li>TC-NEG-004 checks timing-based account enumeration as part of AC-5; the requirements define no numeric timing threshold, so the expected result is a qualitative comparison of overlapping response times.</li>
+    <li>TC-NEG-005 assumes that AC-5 (identical page for all syntactically valid addresses) also applies when the email service fails; the requirements define no specific error behavior for an email outage.</li>
+    <li>TC-NEG-009, TC-NEG-011, TC-NEG-015, and TC-NEG-016 accept either a rejected request or a safe outcome, because the requirements define no specific error message for forged headers, tampered parameters, or invalid tokens; the mandatory outcome is that no account is compromised and no data is disclosed.</li>
+    <li>TC-NEG-043 assumes that a rejected submission does not consume the reset link, because AC-13 marks a link as used only after a successful password reset.</li>
+    <li>Risk: the requirements check link expiry when the link is opened (AC-11, AC-12); they do not state explicitly what happens when a form opened before the 60-minute mark is submitted after it. TC-NEG-018 expects the submission to be rejected; confirm this behavior with the product owner.</li>
+    <li>The behavior of the rate-limit window at exactly 60 min 00 s after an accepted request is not stated in AC-27; TC-EDGE-012 and TC-EDGE-013 therefore use 59 min 59 s and 60 min 01 s. The exact 60 min 00 s moment is tested only for link expiry (TC-EDGE-017), where AC-12 defines &quot;60 minutes or more&quot; as expired.</li>
+    <li>TC-EDGE-020 requires a test environment whose server time zone is Europe/Berlin; the requirements do not name the server or user time zone. The case checks that link age is measured in elapsed time, not wall-clock time.</li>
+    <li>Whether the password fields limit input to 64 characters is not stated; TC-EDGE-025 assumes a 65-character value can be entered and expects server-side rejection.</li>
+    <li>Whether passwords are compared case-sensitively for the AC-25 check is not stated, so no case-only difference from the current password is tested.</li>
+    <li>The minimum non-empty length of an email address is not stated, so no minimum boundary pair is designed for it; the empty partition is covered by TC-NEG-001 and TC-NEG-031.</li>
+    <li>The 254- and 255-character test addresses keep the local part at 64 characters and every domain label at or below 63 characters (RFC 5321), so the only violated rule in TC-EDGE-002 to TC-EDGE-004 is the total length.</li>
+    <li>Some exact boundaries are covered by functional cases instead of separate edge cases: the 5th and 6th request (TC-FUN-014, TC-FUN-015) and the 1-minute delivery time (TC-FUN-008).</li>
+    <li>Test case numbering has gaps (for example TC-NEG-012 or TC-EDGE-005) because 20 duplicate cases were removed during test design validation; IDs are never reused or renumbered.</li>
+  </ul>
+
+  <h2>7. References</h2>
+  <ul>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">Forgot Password - OWASP Cheat Sheet Series</a> - consistent message and uniform response time for existent and non-existent accounts; rate limiting per account; random, single-use, expiring tokens; no reset URLs built from the Host header; HTTPS reset URLs; invalidation of existing sessions after reset</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html">Session Management - OWASP Cheat Sheet Series</a> - server-side invalidation of previous sessions after a password change and re-authentication</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">Input Validation - OWASP Cheat Sheet Series</a> - email syntax rules, total length limit, dangerous characters, and mandatory server-side checks because client-side validation can be bypassed</li>
+    <li><a href="https://owasp.github.io/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/04-Authentication_Testing/09-Testing_for_Weak_Password_Change_or_Reset_Functionalities">WSTG v4.2 - Testing for Weak Password Change or Reset Functionalities</a> - reset tokens generated randomly with a secure algorithm that cannot be derived</li>
+    <li><a href="https://en.wikipedia.org/wiki/Boundary-value_analysis">Boundary-value analysis - Wikipedia</a> - two-value rule: test the boundary value and its closest neighbour in the adjacent partition</li>
+    <li><a href="https://en.wikipedia.org/wiki/Equivalence_partitioning">Equivalence partitioning - Wikipedia</a> - one representative value per valid and invalid partition</li>
+    <li><a href="https://errata.rfc-editor.org/eid1690/">Erratum 1690 - RFC 3696</a> - maximum usable email address length of 254 characters</li>
+    <li><a href="https://datatracker.ietf.org/doc/html/rfc5321">RFC 5321 - Simple Mail Transfer Protocol</a> - local part at most 64 octets, domain at most 255 octets; used to build valid 254- and 255-character test addresses</li>
+    <li><a href="https://pages.nist.gov/800-63-3/sp800-63b.html">NIST Special Publication 800-63B</a> - memorized secrets of at least 8 characters; verifiers should permit at least 64 characters</li>
+    <li><a href="https://timechange.org/pages/time-change-europe-2026">Europe Daylight Saving Time 2026 - Dates and Times | TimeChange.org</a> - Central European DST ends on 2026-10-25 at 03:00 CEST (01:00 UTC), clocks return to 02:00 CET</li>
+  </ul>
+
+  <h2>8. Change log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Revision</th><th>Date</th><th>Change</th></tr>
+    <tr><td>1</td><td>2026-09-23</td><td>Initial draft</td></tr>
+  </table></div>
+</main>
+</body>
+</html>
