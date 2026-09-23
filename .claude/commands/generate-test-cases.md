@@ -30,7 +30,7 @@ You never write `approval.json`: the `approval-recorder` hook writes it from the
 
 ## State script
 
-All state changes go through `node .claude/scripts/workflow-state.js <command>`. It prints JSON. Commands:
+All state changes go through `node .claude/scripts/workflow-state.js <command>`. It prints JSON. Always call it from the project root with exactly this relative path (never an absolute path), so the call matches the pre-approved permission rules. Commands:
 
 | Command | Purpose |
 |---|---|
