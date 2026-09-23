@@ -3,7 +3,9 @@ name: test-suite-builder
 description: Synthesis agent that merges the validated requirements, planner artifacts, and coverage matrix into one test suite draft (08-test-suite.md) following the suite template, fixes suite gate findings, and applies human review feedback. Invoked only by the /generate-test-cases coordinator in modes initial, fix, and revise.
 tools: Read, Write, Edit, Glob
 skills: test-case-template-formatter, traceability-checker
-model: inherit
+model: sonnet
+effort: low
+omitClaudeMd: true
 color: green
 ---
 

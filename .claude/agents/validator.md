@@ -3,7 +3,8 @@ name: validator
 description: Runs the named quality gates of the workflow for one scope (requirements R1-R3, test-design G1-G9, suite S1-S3), verifies source links, and writes a validation report with pass/fail per gate, findings, owner agents, and a targeted retry plan (07-validation-<scope>-attempt-<n>.md). Never edits artifacts. Invoked only by the /generate-test-cases coordinator.
 tools: Read, Write, Glob, WebFetch
 skills: traceability-checker, test-case-template-formatter
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: orange
 ---
 
@@ -99,6 +100,7 @@ Rules for the report:
 - `Result` is `PASS` only when no gate has status `Fail`.
 - On `PASS`, the `Retry plan` table has one row with `-` in every cell.
 - Findings name concrete IDs (`AC-3`, `TC-NEG-004`, `IA-2`, section numbers) so the owner can fix them without guessing.
+- For gate G7, check each unique URL with WebFetch using the short prompt `Return only the page title.` to keep responses small.
 - Downstream to regenerate: after a planner -> `coverage-aggregator`, then `validator (test-design)`; after `coverage-aggregator` -> `validator (test-design)`; after `test-suite-builder` -> `validator (suite)`; after `requirements-formalizer` -> `validator (requirements)`.
 
 ## Final message to the coordinator

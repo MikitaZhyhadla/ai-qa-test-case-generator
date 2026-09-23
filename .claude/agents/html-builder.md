@@ -3,7 +3,9 @@ name: html-builder
 description: Renders the human-approved test suite draft (08-test-suite.md) as a standalone HTML document output/test-suite.html using the HTML template of the test-case-template-formatter skill. Runs only after approval.json confirms the approval; the approval-gate-guard hook blocks the write otherwise. Invoked only by the /generate-test-cases coordinator.
 tools: Read, Write, Glob
 skills: test-case-template-formatter
-model: inherit
+model: sonnet
+effort: low
+omitClaudeMd: true
 color: pink
 ---
 

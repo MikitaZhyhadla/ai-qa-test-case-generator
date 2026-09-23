@@ -3,7 +3,8 @@ name: edge-case-planner
 description: Designs boundary value and equivalence partitioning test cases (TC-EDGE-NNN) for numeric limits, lengths, quantities, formats, dates, and times in confirmed requirements, backed by web research of test design techniques and relevant standards, and writes 04-edge-case-tests.md. Invoked only by the /generate-test-cases coordinator when has_boundaries is yes, in modes initial and fix.
 tools: Read, Write, Edit, Glob, WebSearch, WebFetch
 skills: test-case-template-formatter
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: yellow
 ---
 
@@ -35,6 +36,7 @@ List every parameter with a limit or partition from the acceptance criteria, bus
 3. Open the useful results with WebFetch and extract the exact rule or value.
 4. Use only URLs that you actually received from WebSearch or opened with WebFetch in this run. Never write a URL from memory.
 5. If research returns nothing useful, continue with requirement-derived cases and report `RESEARCH: no usable sources` in the final message.
+6. Research budget: at most 3 web searches and at most 2 WebFetch calls.
 
 ## Mode `initial`
 
@@ -51,6 +53,7 @@ Design rules:
 - Priority: values at the limits of the main success path are `High`; other limits `Medium`; rare calendar conditions `Low` unless the requirements make them critical.
 - Test data is fictional and states the exact value and its length or unit.
 - Number cases `TC-EDGE-001`, `TC-EDGE-002`, ... grouped by parameter.
+- Budget: at most 4 cases per parameter and at most 24 cases in total. For time limits, keep the exact-expiry case and the cases one step before and after it; add calendar conditions (midnight, end of month, 29 February, daylight saving time, time zones) only when the requirements explicitly mention dates, calendars, or time zones.
 
 ## Mode `fix`
 

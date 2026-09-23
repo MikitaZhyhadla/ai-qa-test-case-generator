@@ -6,7 +6,7 @@
       "Bash(node .claude/scripts/selftest-hooks.js)",
       "Bash(git remote get-url origin)",
       "WebSearch",
-      "WebFetch(domain:*)",
+      "WebFetch",
       "mcp__github__issue_read",
       "mcp__github__search_issues",
       "mcp__github__list_issues",
