@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Suite - {{FEATURE_NAME}}</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --card: #f6f8fa;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --card: #151b23;
+      --critical: #f85149; --high: #db6d28; --medium: #d29922; --low: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card); }
+  .table-wrap { overflow-x: auto; }
+  .tc { border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+        padding: 14px 18px; margin: 14px 0; page-break-inside: avoid; }
+  .tc h4 { margin: 0 0 10px; font-size: 16px; }
+  .tc-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--muted); margin-right: 6px; }
+  .tc table { background: var(--bg); }
+  .label { font-weight: 600; margin: 10px 0 4px; }
+  .prio { font-weight: 600; }
+  .prio-critical { color: var(--critical); } .prio-high { color: var(--high); }
+  .prio-medium { color: var(--medium); } .prio-low { color: var(--low); }
+  .na { color: var(--muted); font-style: italic; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; }
+  @media print { body { background: #fff; color: #000; } .tc { background: #fff; } a { color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test Suite - {{FEATURE_NAME}}</h1>
+  <div class="table-wrap"><table>
+    <tr><th>Run ID</th><td>{{RUN_ID}}</td></tr>
+    <tr><th>Source issue</th><td><a href="{{ISSUE_URL}}">#{{ISSUE_NUMBER}} {{ISSUE_TITLE}}</a></td></tr>
+    <tr><th>Revision</th><td>{{REVISION}}</td></tr>
+    <tr><th>Status</th><td>{{STATUS}}</td></tr>
+    <tr><th>Approved at</th><td>{{APPROVED_AT}}</td></tr>
+    <tr><th>Generated</th><td>{{GENERATED}}</td></tr>
+  </table></div>
+
+  <h2>1. Summary</h2>
+  <p>{{SUMMARY_TEXT}}</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th></tr>
+    <!-- REPEAT for each type row, then the Total row with <strong> values -->
+    <tr><td>{{TYPE}}</td><td>{{N_CRITICAL}}</td><td>{{N_HIGH}}</td><td>{{N_MEDIUM}}</td><td>{{N_LOW}}</td><td>{{N_TOTAL}}</td></tr>
+    <!-- END REPEAT -->
+  </table></div>
+
+  <h2>2. Scope</h2>
+  <p class="label">In scope</p>
+  <ul>{{IN_SCOPE_ITEMS}}</ul>
+  <p class="label">Out of scope</p>
+  <ul>{{OUT_OF_SCOPE_ITEMS}}</ul>
+
+  <h2>3. Requirements under test</h2>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Acceptance criterion</th></tr>
+    <!-- REPEAT for each acceptance criterion -->
+    <tr><td>{{AC_ID}}</td><td>{{AC_TEXT}}</td></tr>
+    <!-- END REPEAT -->
+  </table></div>
+
+  <h2>4. Coverage matrix</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Requirement</th><th>Positive</th><th>Negative / Security</th><th>Boundary / Equivalence</th><th>Regression</th></tr>
+    <!-- REPEAT for each requirement row -->
+    <tr><td>{{REQ_ID}}</td><td>{{POSITIVE_IDS}}</td><td>{{NEGATIVE_IDS}}</td><td>{{BOUNDARY_IDS}}</td><td>{{REGRESSION_IDS}}</td></tr>
+    <!-- END REPEAT -->
+  </table></div>
+
+  <h2>5. Test cases</h2>
+  <!-- REPEAT for subsections 5.1 Functional, 5.2 Negative and security, 5.3 Boundary and edge cases, 5.4 Regression -->
+  <h3>{{SUBSECTION_TITLE}}</h3>
+  <!-- If the subsection is empty, render: <p class="na">Not applicable for this run - {{REASON}}.</p> -->
+  <!-- REPEAT for each test case -->
+  <section class="tc" id="{{TC_ID}}">
+    <h4><span class="tc-id">{{TC_ID}}</span>{{TC_TITLE}}</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>{{TC_TYPE}}</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-{{TC_PRIORITY_LOWERCASE}}">{{TC_PRIORITY}}</span></td></tr>
+      <tr><th>Requirement refs</th><td>{{TC_REFS}}</td></tr>
+      <tr><th>Technique</th><td>{{TC_TECHNIQUE}}</td></tr>
+      <tr><th>Source</th><td>{{TC_SOURCE_LINK_OR_TEXT}}</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>{{TC_PRECONDITION_ITEMS}}</ul>
+    <p class="label">Test data</p>
+    <ul>{{TC_TEST_DATA_ITEMS}}</ul>
+    <p class="label">Steps</p>
+    <ol>{{TC_STEP_ITEMS}}</ol>
+    <p class="label">Expected result</p>
+    <ul>{{TC_EXPECTED_ITEMS}}</ul>
+  </section>
+  <!-- END REPEAT -->
+  <!-- END REPEAT -->
+
+  <h2>6. Assumptions and risks</h2>
+  <ul>{{ASSUMPTION_ITEMS}}</ul>
+
+  <h2>7. References</h2>
+  <ul>{{REFERENCE_ITEMS}}</ul>
+
+  <h2>8. Change log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Revision</th><th>Date</th><th>Change</th></tr>
+    <!-- REPEAT for each change log entry -->
+    <tr><td>{{REV}}</td><td>{{REV_DATE}}</td><td>{{REV_CHANGE}}</td></tr>
+    <!-- END REPEAT -->
+  </table></div>
+</main>
+</body>
+</html>
