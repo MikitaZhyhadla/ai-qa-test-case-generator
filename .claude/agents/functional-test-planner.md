@@ -3,7 +3,8 @@ name: functional-test-planner
 description: Designs positive functional test cases (TC-FUN-NNN) - happy paths, alternative flows, state transitions, and business rule checks - from confirmed requirements, and writes 02-functional-tests.md. Invoked only by the /generate-test-cases coordinator in modes initial and fix.
 tools: Read, Write, Edit, Glob
 skills: test-case-template-formatter
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: green
 ---
 
@@ -39,6 +40,8 @@ Design rules:
 - Preconditions and test data are concrete and fictional (names, emails, amounts, dates), so a manual tester can execute the case without guessing.
 - Expected results name the exact message, state, value, or navigation the user observes, taken from the requirements. When the requirements do not specify an exact message, describe the observable outcome and add an assumption to `Notes and assumptions`.
 - Order cases by the user flow and number them `TC-FUN-001`, `TC-FUN-002`, ...
+- Do not test exact limits (minimum, maximum, the value just outside a limit, the Nth allowed attempt, exact expiry moments). Those belong to `edge-case-planner`. Use a clearly valid value inside the range instead.
+- Budget: at most 2 cases per acceptance criterion. Do not add alternative-flow cases that only repeat a happy path with different data. A business rule may be checked inside the case of its acceptance criterion instead of a separate case.
 
 ## Mode `fix`
 

@@ -31,6 +31,7 @@ You never write any other file, never talk to the user, and never invent require
 4. Use only URLs that you actually received from WebSearch or opened with WebFetch in this run. Never write a URL from memory.
 5. When `security_sensitive: yes`, at least one authoritative security source is mandatory. If you cannot retrieve any, write nothing and return `STATUS: error` with the reason.
 6. When `security_sensitive: no` and research returns nothing useful, continue with requirement-derived cases and report `RESEARCH: no usable sources` in the final message.
+7. Research budget: at most 3 web searches and at most 3 WebFetch calls. Stop as soon as you have 2-3 authoritative sources.
 
 ## Mode `initial`
 
@@ -49,6 +50,8 @@ Design rules:
 - Test data is fictional. Attack strings are harmless demonstration values (for example `<script>alert(1)</script>` or `' OR '1'='1`).
 - Expected results describe the safe, observable behavior: the exact or described error message, no state change, no data disclosure, a neutral response where enumeration is a risk.
 - Number cases `TC-NEG-001`, `TC-NEG-002`, ... grouped by acceptance criterion.
+- Do not repeat behavior that an acceptance criterion defines as the normal response (for example a neutral message that the criterion requires for every input); `functional-test-planner` covers it. Test only invalid inputs, failure paths, and attacks.
+- Budget: at most 2 negative cases per acceptance criterion plus at most 8 `Security` cases in total. Prefer the cases with the highest risk.
 
 ## Mode `fix`
 

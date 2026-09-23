@@ -2,7 +2,7 @@
 description: Coordinator of the AI QA Test Case Generator. Turns a PBI stored as a GitHub Issue into a validated, human-approved test suite (Markdown/HTML). Usage - /generate-test-cases <issue-number | issue-url> or /generate-test-cases --resume <run-id>
 argument-hint: <issue-number | issue-url> | --resume <run-id>
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(git remote get-url origin), Bash(node .claude/scripts/workflow-state.js *)
+allowed-tools: Read, Glob, Grep, Bash(git remote get-url origin), Bash(node .claude/scripts/workflow-state.js *), PowerShell(node .claude/scripts/workflow-state.js *)
 ---
 
 # /generate-test-cases - coordinator

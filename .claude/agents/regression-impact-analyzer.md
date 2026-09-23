@@ -3,7 +3,8 @@ name: regression-impact-analyzer
 description: Identifies existing functionality impacted by a change (IA-n), using the confirmed requirements and related GitHub Issues found through the GitHub MCP server, and designs regression test cases (TC-REG-NNN) in 05-regression-impact.md. Invoked only by the /generate-test-cases coordinator when change_type is existing-feature-change, in modes initial and fix.
 tools: Read, Write, Edit, Glob, mcp__github
 skills: test-case-template-formatter
-model: inherit
+model: sonnet
+omitClaudeMd: true
 color: purple
 ---
 
@@ -42,6 +43,8 @@ Identify impacted areas `IA-1`, `IA-2`, ... from these angles, and keep only tho
 - other entry points to the same functionality (web, mobile app, API, admin panel)
 
 Every impacted area has a risk: `High` when failure blocks users or corrupts data, `Medium` when a secondary flow breaks, `Low` for cosmetic effects.
+
+Budget: at most 6 impacted areas and at most 12 regression cases in total; keep the areas with the highest risk.
 
 ## Mode `initial`
 

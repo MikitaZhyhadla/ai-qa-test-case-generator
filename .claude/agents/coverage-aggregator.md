@@ -3,7 +3,9 @@ name: coverage-aggregator
 description: Synthesis agent that combines the outputs of all selected test planners (02-05) into one requirement-to-test coverage matrix (06-coverage-matrix.md) using the traceability-checker skill. Invoked only by the /generate-test-cases coordinator after the design step and after every targeted retry of a planner.
 tools: Read, Write, Glob
 skills: traceability-checker, test-case-template-formatter
-model: inherit
+model: sonnet
+effort: low
+omitClaudeMd: true
 color: cyan
 ---
 
