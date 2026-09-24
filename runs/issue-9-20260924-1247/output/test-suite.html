@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Suite - Online appointment booking (CareSlot)</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --card: #f6f8fa;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --card: #151b23;
+      --critical: #f85149; --high: #db6d28; --medium: #d29922; --low: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card); }
+  .table-wrap { overflow-x: auto; }
+  .tc { border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+        padding: 14px 18px; margin: 14px 0; page-break-inside: avoid; }
+  .tc h4 { margin: 0 0 10px; font-size: 16px; }
+  .tc-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--muted); margin-right: 6px; }
+  .tc table { background: var(--bg); }
+  .label { font-weight: 600; margin: 10px 0 4px; }
+  .prio { font-weight: 600; }
+  .prio-critical { color: var(--critical); } .prio-high { color: var(--high); }
+  .prio-medium { color: var(--medium); } .prio-low { color: var(--low); }
+  .na { color: var(--muted); font-style: italic; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; }
+  @media print { body { background: #fff; color: #000; } .tc { background: #fff; } a { color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test Suite - Online appointment booking (CareSlot)</h1>
+  <div class="table-wrap"><table>
+    <tr><th>Run ID</th><td>issue-9-20260924-1247</td></tr>
+    <tr><th>Source issue</th><td><a href="https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/9">#9 PBI: Book an appointment time slot online</a></td></tr>
+    <tr><th>Revision</th><td>4</td></tr>
+    <tr><th>Status</th><td>Approved</td></tr>
+    <tr><th>Approved at</th><td>2026-09-24 13:55</td></tr>
+    <tr><th>Generated</th><td>2026-09-24 13:45</td></tr>
+  </table></div>
+
+  <h2>1. Summary</h2>
+  <p>CareSlot is a fictional clinic booking app (web and mobile) that lets registered patients book appointments online: they pick a doctor, a date from tomorrow through 30 days ahead, and a free 15-minute slot within 08:00-16:00 (Europe/Warsaw), then receive a confirmation number and email. The feature also enforces a limit of 3 upcoming appointments per patient, protects against double-booking, and allows cancellation up to 24 hours before the start. The suite combines functional cases for every acceptance criterion, negative and security cases (the feature is security sensitive: authenticated patients, personal data, per-patient ownership), and boundary and equivalence cases (the feature has many numeric and time limits). Regression analysis was not run because the feature is new and no existing area is changed.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th></tr>
+    <tr><td>Functional</td><td>2</td><td>7</td><td>5</td><td>0</td><td>14</td></tr>
+    <tr><td>Negative</td><td>1</td><td>8</td><td>4</td><td>0</td><td>13</td></tr>
+    <tr><td>Security</td><td>3</td><td>4</td><td>0</td><td>0</td><td>7</td></tr>
+    <tr><td>Boundary</td><td>0</td><td>12</td><td>4</td><td>0</td><td>16</td></tr>
+    <tr><td>Equivalence</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>Regression</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>6</strong></td><td><strong>31</strong></td><td><strong>14</strong></td><td><strong>0</strong></td><td><strong>51</strong></td></tr>
+  </table></div>
+
+  <h2>2. Scope</h2>
+  <p class="label">In scope</p>
+  <ul>
+    <li>Date calendar for booking (today+1 through today+30) and slot list in 15-minute increments within 08:00-16:00 Europe/Warsaw (AC-1, AC-2)</li>
+    <li>Slot availability: past slots and already booked slots are not offered (AC-3, AC-4)</li>
+    <li>Booking confirmation with doctor, date, time and booking number (AC-5)</li>
+    <li>Limit of 3 upcoming appointments across all doctors (AC-6)</li>
+    <li>Concurrent booking of the same slot (AC-7)</li>
+    <li>Cancellation with 24 hours or more remaining and blocked cancellation with less than 24 hours remaining (AC-8, AC-9)</li>
+    <li>Confirmation emails after booking and after cancellation (AC-10, AC-11)</li>
+    <li>Clinic time zone handling regardless of the patient's device time zone</li>
+    <li>Access control and input validation for booking and cancellation requests</li>
+  </ul>
+  <p class="label">Out of scope</p>
+  <ul>
+    <li>Payments and rescheduling (BR-5); a patient changes an appointment by cancelling it and booking a new one</li>
+    <li>Patient registration and login (assumption A-1)</li>
+    <li>Doctor days off and holidays (not described in the requirements)</li>
+    <li>Regression testing of existing features - regression analysis was not selected because the feature is a new capability and no existing area is described as changed</li>
+    <li>Negative testing of email delivery (AC-10, AC-11) - no invalid input or failure path is defined</li>
+    <li>Rate limiting and brute-force testing - no limits are defined for the booking and cancellation endpoints</li>
+  </ul>
+
+  <h2>3. Requirements under test</h2>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Acceptance criterion</th></tr>
+    <tr><td>AC-1</td><td>When a registered patient selects a doctor, the app displays a calendar of selectable dates from tomorrow (today+1) through 30 days ahead (today+30), inclusive on both ends; same-day (today) booking is not offered.</td></tr>
+    <tr><td>AC-2</td><td>For the date the patient selects, the app shows the doctor's free slots as 15-minute increments within the doctor's working hours, 08:00-16:00 in the clinic time zone (Europe/Warsaw).</td></tr>
+    <tr><td>AC-3</td><td>Slots that are in the past relative to the current date and time are not shown as available.</td></tr>
+    <tr><td>AC-4</td><td>Slots that are already booked (by any patient) are not shown as available.</td></tr>
+    <tr><td>AC-5</td><td>When the patient selects one available slot and confirms it, the app shows a booking confirmation containing the doctor, date, time, and a booking number.</td></tr>
+    <tr><td>AC-6</td><td>The app prevents a patient from having more than 3 upcoming appointments in total across all doctors combined; an attempt to book beyond the limit is rejected and the app shows the message &quot;You already have the maximum of 3 upcoming appointments. Cancel one to book a new appointment.&quot;</td></tr>
+    <tr><td>AC-7</td><td>When two patients try to book the same slot at the same moment, only the first confirmation succeeds; the second patient sees the message &quot;This slot was just booked. Please choose another one.&quot;</td></tr>
+    <tr><td>AC-8</td><td>The patient can cancel an upcoming appointment when 24 hours or more remain before the appointment start; exactly 24 hours remaining is still allowed to cancel.</td></tr>
+    <tr><td>AC-9</td><td>The app prevents cancellation when less than 24 hours remain before the appointment start; the appointment is not cancelled and the app shows the message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot;</td></tr>
+    <tr><td>AC-10</td><td>After a successful booking, the patient receives a confirmation email.</td></tr>
+    <tr><td>AC-11</td><td>After a successful cancellation, the patient receives a confirmation email.</td></tr>
+  </table></div>
+
+  <h2>4. Coverage matrix</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Requirement</th><th>Positive</th><th>Negative / Security</th><th>Boundary / Equivalence</th><th>Regression</th></tr>
+    <tr><td>AC-1</td><td>TC-FUN-001</td><td>TC-NEG-001, TC-NEG-002, TC-NEG-003</td><td>TC-EDGE-001, TC-EDGE-002, TC-EDGE-003, TC-EDGE-004, TC-EDGE-017</td><td>-</td></tr>
+    <tr><td>AC-2</td><td>TC-FUN-002, TC-FUN-003</td><td>TC-NEG-003, TC-NEG-004, TC-NEG-005</td><td>TC-EDGE-005, TC-EDGE-006, TC-EDGE-007, TC-EDGE-008, TC-EDGE-009</td><td>-</td></tr>
+    <tr><td>AC-3</td><td>TC-FUN-004</td><td>TC-NEG-006</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-4</td><td>TC-FUN-005</td><td>TC-NEG-007, TC-NEG-008</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-5</td><td>TC-FUN-006, TC-FUN-014</td><td>TC-NEG-009, TC-NEG-010, TC-NEG-011, TC-NEG-014</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-6</td><td>TC-FUN-008, TC-FUN-009</td><td>TC-NEG-012, TC-NEG-013, TC-NEG-014</td><td>TC-EDGE-011</td><td>-</td></tr>
+    <tr><td>AC-7</td><td>TC-FUN-010</td><td>TC-NEG-015</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-8</td><td>TC-FUN-011, TC-FUN-014</td><td>TC-NEG-016, TC-NEG-017, TC-NEG-018</td><td>TC-EDGE-014, TC-EDGE-015, TC-EDGE-018, TC-EDGE-019</td><td>-</td></tr>
+    <tr><td>AC-9</td><td>TC-FUN-013</td><td>TC-NEG-018, TC-NEG-019, TC-NEG-020</td><td>TC-EDGE-016, TC-EDGE-020</td><td>-</td></tr>
+    <tr><td>AC-10</td><td>TC-FUN-007</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-11</td><td>TC-FUN-012</td><td>-</td><td>-</td><td>-</td></tr>
+  </table></div>
+
+  <h2>5. Test cases</h2>
+  <h3>5.1 Functional</h3>
+  <section class="tc" id="TC-FUN-001">
+    <h4><span class="tc-id">TC-FUN-001</span>Show calendar of selectable dates from tomorrow through 30 days ahead (BR-1)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> (piotr.nowak@example.com) is registered and logged in to CareSlot</li>
+      <li>Today is 2026-10-05 (example; use the real current date and shift all dates accordingly)</li>
+      <li>Doctor <code>Dr. Anna Kowalska</code> exists and has working hours 08:00-16:00 (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Today: 2026-10-05</li>
+      <li>Example in-window dates: 2026-10-06, 2026-10-12, 2026-11-04</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page.</li>
+      <li>Select the doctor <code>Dr. Anna Kowalska</code>.</li>
+      <li>Look at the displayed date calendar.</li>
+      <li>Try to select today (2026-10-05).</li>
+      <li>Select the in-window date 2026-10-12.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The calendar shows selectable dates starting from tomorrow (2026-10-06) through 30 days ahead (2026-11-04), including 2026-10-12.</li>
+      <li>Today (2026-10-05) is not offered as a selectable date.</li>
+      <li>Selecting 2026-10-12 opens the slot list for that date.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-002">
+    <h4><span class="tc-id">TC-FUN-002</span>Show free slots in 15-minute increments within doctor working hours (BR-2)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li><code>Dr. Anna Kowalska</code> has no booked appointments on 2026-10-12</li>
+      <li>Today is 2026-10-05</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Anna Kowalska</code>.</li>
+      <li>Select the date 2026-10-12.</li>
+      <li>Review the list of slots shown.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The slots are listed as 15-minute increments (for example 08:15, 08:30, 08:45, ... 15:30, 15:45).</li>
+      <li>Every displayed slot lies within the doctor's working hours 08:00-16:00.</li>
+      <li>No slot appears at an interval other than 15 minutes (for example 09:10 is not offered).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-003">
+    <h4><span class="tc-id">TC-FUN-003</span>Show slot times in clinic time zone when the patient device uses another time zone</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient's device time zone is set to America/New_York (not Europe/Warsaw)</li>
+      <li><code>Dr. Anna Kowalska</code> has no booked appointments on 2026-10-12</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+      <li>Device time zone: America/New_York</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Anna Kowalska</code>.</li>
+      <li>Select the date 2026-10-12.</li>
+      <li>Review the slot times shown.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The slot times are displayed in the clinic time zone Europe/Warsaw and fall within 08:00-16:00.</li>
+      <li>No slot is shifted by the device's time zone offset (for example no slots in the range 02:00-10:00 are shown).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-004">
+    <h4><span class="tc-id">TC-FUN-004</span>Hide slots that are already in the past</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>Test environment allows setting the system clock</li>
+      <li>Clock is set to 2026-10-05 22:00 Europe/Warsaw, and the slot list for 2026-10-06 with <code>Dr. Anna Kowalska</code> is already open (same-day dates are not selectable in the calendar, so the date becomes &quot;today&quot; while the page is open)</li>
+      <li><code>Dr. Anna Kowalska</code> has no booked appointments on 2026-10-06</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-06</li>
+      <li>New clock value: 2026-10-06 10:07 Europe/Warsaw</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Advance the system clock to 2026-10-06 10:07 Europe/Warsaw.</li>
+      <li>Refresh the slot list for <code>Dr. Anna Kowalska</code> on 2026-10-06.</li>
+      <li>Review the list of slots shown.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Slots earlier than 10:07 (for example 08:15, 09:00, 10:00) are not shown as available.</li>
+      <li>Slots later than 10:07 (for example 10:30, 11:00) are shown as available.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-005">
+    <h4><span class="tc-id">TC-FUN-005</span>Hide slots already booked by another patient</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>Another patient, <code>Marta Zielinska</code> (marta.zielinska@example.com), has a booked appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 09:30</li>
+      <li>Today is 2026-10-05</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+      <li>Booked slot: 09:30</li>
+      <li>Neighbouring free slots: 09:15 and 09:45</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Anna Kowalska</code>.</li>
+      <li>Select the date 2026-10-12.</li>
+      <li>Look for the 09:30 slot in the list.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The 09:30 slot is not shown as available.</li>
+      <li>The neighbouring slots 09:15 and 09:45 are shown as available.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-006">
+    <h4><span class="tc-id">TC-FUN-006</span>Book a free slot and see the booking confirmation</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> (piotr.nowak@example.com) is logged in and has no upcoming appointments</li>
+      <li><code>Dr. Anna Kowalska</code> has slot 10:00 free on 2026-10-12</li>
+      <li>Today is 2026-10-05</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+      <li>Slot: 10:00</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Anna Kowalska</code>.</li>
+      <li>Select the date 2026-10-12.</li>
+      <li>Select the slot 10:00.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A booking confirmation is shown containing the doctor <code>Dr. Anna Kowalska</code>, the date 2026-10-12, the time 10:00 and a booking number.</li>
+      <li>The appointment appears among the patient's upcoming appointments.</li>
+      <li>No payment step is requested (BR-5).</li>
+      <li>The 10:00 slot is no longer shown as available for <code>Dr. Anna Kowalska</code> on 2026-10-12.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-007">
+    <h4><span class="tc-id">TC-FUN-007</span>Send confirmation email after a successful booking</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-10</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in with email <code>piotr.nowak@example.com</code> and can read that mailbox</li>
+      <li><code>Dr. Anna Kowalska</code> has slot 10:00 free on 2026-10-12</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+      <li>Slot: 10:00</li>
+      <li>Email: <code>piotr.nowak@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Book the 10:00 slot with <code>Dr. Anna Kowalska</code> on 2026-10-12 and confirm the booking.</li>
+      <li>Note the booking number shown on screen.</li>
+      <li>Open the mailbox <code>piotr.nowak@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A booking confirmation email is received in the mailbox.</li>
+      <li>The email contains the same doctor, date, time and booking number as shown on screen (A-2).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-008">
+    <h4><span class="tc-id">TC-FUN-008</span>Reject a fourth upcoming appointment counted across all doctors (BR-3)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient has 3 upcoming appointments: <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00, <code>Dr. Anna Kowalska</code> on 2026-10-13 at 11:00, and <code>Dr. Jan Lewandowski</code> on 2026-10-14 at 09:00</li>
+      <li><code>Dr. Tomasz Wisniewski</code> has slot 13:00 free on 2026-10-15</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>New booking attempt: <code>Dr. Tomasz Wisniewski</code>, 2026-10-15, 13:00</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Tomasz Wisniewski</code>.</li>
+      <li>Select the date 2026-10-15 and the slot 13:00.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The booking is rejected.</li>
+      <li>The app shows the message &quot;You already have the maximum of 3 upcoming appointments. Cancel one to book a new appointment.&quot;</li>
+      <li>No new appointment is added; the patient still has exactly 3 upcoming appointments.</li>
+      <li>The 13:00 slot with <code>Dr. Tomasz Wisniewski</code> remains available for other patients.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-009">
+    <h4><span class="tc-id">TC-FUN-009</span>Book a new appointment after cancelling one at the 3-appointment limit (BR-3)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient has 3 upcoming appointments starting well more than 24 hours from now: <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00, <code>Dr. Anna Kowalska</code> on 2026-10-13 at 11:00, and <code>Dr. Jan Lewandowski</code> on 2026-10-14 at 09:00</li>
+      <li><code>Dr. Tomasz Wisniewski</code> has slot 13:00 free on 2026-10-15</li>
+      <li>Today is 2026-10-05</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment to cancel: <code>Dr. Jan Lewandowski</code>, 2026-10-14, 09:00</li>
+      <li>New booking: <code>Dr. Tomasz Wisniewski</code>, 2026-10-15, 13:00</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the patient's upcoming appointments and cancel the appointment with <code>Dr. Jan Lewandowski</code> on 2026-10-14 at 09:00.</li>
+      <li>Open the &quot;Book an appointment&quot; page and select <code>Dr. Tomasz Wisniewski</code>.</li>
+      <li>Select the date 2026-10-15 and the slot 13:00.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The cancellation succeeds and the patient has 2 upcoming appointments.</li>
+      <li>The new booking is accepted and a booking confirmation with <code>Dr. Tomasz Wisniewski</code>, 2026-10-15, 13:00 and a booking number is shown.</li>
+      <li>The message about the maximum of 3 upcoming appointments is not shown.</li>
+      <li>The patient has 3 upcoming appointments again.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-010">
+    <h4><span class="tc-id">TC-FUN-010</span>Accept only the first of two simultaneous bookings of the same slot</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>Piotr Nowak</code> and <code>Marta Zielinska</code> are logged in on two separate devices, each with fewer than 3 upcoming appointments</li>
+      <li><code>Dr. Anna Kowalska</code> has slot 11:15 free on 2026-10-12</li>
+      <li>Both patients have selected the 11:15 slot on 2026-10-12 and are on the confirmation step</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Anna Kowalska</code></li>
+      <li>Date: 2026-10-12</li>
+      <li>Slot: 11:15</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>On the first device, confirm the booking as <code>Piotr Nowak</code>.</li>
+      <li>On the second device, confirm the booking as <code>Marta Zielinska</code> immediately afterwards.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li><code>Piotr Nowak</code> sees the booking confirmation with <code>Dr. Anna Kowalska</code>, 2026-10-12, 11:15 and a booking number.</li>
+      <li><code>Marta Zielinska</code> sees the message &quot;This slot was just booked. Please choose another one.&quot;</li>
+      <li>The 11:15 slot is booked only for <code>Piotr Nowak</code>; <code>Marta Zielinska</code> has no appointment for that slot.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-011">
+    <h4><span class="tc-id">TC-FUN-011</span>Cancel an upcoming appointment more than 24 hours before its start (BR-4)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient has an upcoming appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00</li>
+      <li>Current date and time is 2026-10-05 12:00 Europe/Warsaw (about 7 days before the start)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment: <code>Dr. Anna Kowalska</code>, 2026-10-12, 10:00</li>
+      <li>Appointment state before: upcoming (booked)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the patient's upcoming appointments.</li>
+      <li>Select the appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00.</li>
+      <li>Choose to cancel the appointment and confirm the cancellation.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The cancellation succeeds and the app shows that the appointment is cancelled.</li>
+      <li>The appointment is no longer listed among the patient's upcoming appointments.</li>
+      <li>The 10:00 slot with <code>Dr. Anna Kowalska</code> on 2026-10-12 is shown as available again for other patients (A-3).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-012">
+    <h4><span class="tc-id">TC-FUN-012</span>Send confirmation email after a successful cancellation</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in with email <code>piotr.nowak@example.com</code> and can read that mailbox</li>
+      <li>The patient has an upcoming appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00 and booking number known</li>
+      <li>Current date and time is 2026-10-05 12:00 Europe/Warsaw</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment: <code>Dr. Anna Kowalska</code>, 2026-10-12, 10:00</li>
+      <li>Email: <code>piotr.nowak@example.com</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Cancel the appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00 and confirm the cancellation.</li>
+      <li>Open the mailbox <code>piotr.nowak@example.com</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A cancellation confirmation email is received in the mailbox.</li>
+      <li>The email contains the same doctor, date, time and booking number as the cancelled appointment (A-2).</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-013">
+    <h4><span class="tc-id">TC-FUN-013</span>Block cancellation when less than 24 hours remain before the start (BR-4)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient has an upcoming appointment with <code>Dr. Anna Kowalska</code> on 2026-10-06 at 09:00, booked on 2026-10-05</li>
+      <li>Current date and time is 2026-10-05 12:00 Europe/Warsaw (21 hours before the start)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment: <code>Dr. Anna Kowalska</code>, 2026-10-06, 09:00</li>
+      <li>Time remaining: 21 hours</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the patient's upcoming appointments.</li>
+      <li>Select the appointment with <code>Dr. Anna Kowalska</code> on 2026-10-06 at 09:00.</li>
+      <li>Try to cancel the appointment.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is not cancelled.</li>
+      <li>The app shows the message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot;</li>
+      <li>The appointment remains in the patient's upcoming appointments and the 09:00 slot stays unavailable to other patients.</li>
+      <li>No cancellation confirmation email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-FUN-014">
+    <h4><span class="tc-id">TC-FUN-014</span>Change an appointment by cancelling it and booking a new one (BR-5)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5, AC-8</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>Piotr Nowak</code> is logged in</li>
+      <li>The patient has one upcoming appointment with <code>Dr. Anna Kowalska</code> on 2026-10-12 at 10:00</li>
+      <li><code>Dr. Anna Kowalska</code> has slot 14:00 free on 2026-10-13</li>
+      <li>Current date and time is 2026-10-05 12:00 Europe/Warsaw</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Old appointment: <code>Dr. Anna Kowalska</code>, 2026-10-12, 10:00</li>
+      <li>New appointment: <code>Dr. Anna Kowalska</code>, 2026-10-13, 14:00</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the patient's upcoming appointments and look at the options for the appointment on 2026-10-12 at 10:00.</li>
+      <li>Cancel that appointment and confirm the cancellation.</li>
+      <li>Open the &quot;Book an appointment&quot; page, select <code>Dr. Anna Kowalska</code>, the date 2026-10-13 and the slot 14:00.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment offers no &quot;Reschedule&quot; option; changing it is done only by cancelling (BR-5).</li>
+      <li>The old appointment is cancelled and the slot 10:00 on 2026-10-12 is available again.</li>
+      <li>The new booking is confirmed with <code>Dr. Anna Kowalska</code>, 2026-10-13, 14:00 and a new booking number.</li>
+      <li>The patient has exactly 1 upcoming appointment (the new one).</li>
+    </ul>
+  </section>
+
+  <h3>5.2 Negative and security</h3>
+  <section class="tc" id="TC-NEG-001">
+    <h4><span class="tc-id">TC-NEG-001</span>Reject booking request with a date far outside the bookable window</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>Patient has 0 upcoming appointments</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 90 days</li>
+      <li>Time: <code>10:00</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Select <code>Dr. Test Nowak</code> in the app and capture the booking request.</li>
+      <li>Replay the booking request with the date changed to today + 90 days, bypassing the calendar.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request with a validation error; no appointment is created.</li>
+      <li>The patient's list of upcoming appointments is unchanged.</li>
+      <li>The response does not contain a stack trace or internal error details.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-002">
+    <h4><span class="tc-id">TC-NEG-002</span>Reject booking request with a malformed date value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date values tried one by one: empty string, <code>abc</code>, <code>2026-13-45</code>, <code>31/12/2026</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a valid slot-list request for <code>Dr. Test Nowak</code>.</li>
+      <li>Replay the request with the date set to the first invalid value from the test data.</li>
+      <li>Repeat step 2 for each remaining invalid value.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Each request is rejected with a validation error; no slots are returned and no appointment is created.</li>
+      <li>The response does not contain a stack trace or internal error details.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-003">
+    <h4><span class="tc-id">TC-NEG-003</span>Reject injection strings in doctor and date parameters</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1, AC-2</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>An API client or browser developer tools can send the slot-list request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor parameter: <code>' OR '1'='1</code></li>
+      <li>Date parameter: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a valid slot-list request for a doctor and a bookable date.</li>
+      <li>Replay the request with the doctor parameter set to <code>' OR '1'='1</code>.</li>
+      <li>Replay the request with the date parameter set to <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both requests are rejected with a generic validation error; no slots and no other doctors' data are returned.</li>
+      <li>No script is executed and the submitted value is not rendered unescaped in the page.</li>
+      <li>The response does not contain a database error, stack trace, or internal path.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-004">
+    <h4><span class="tc-id">TC-NEG-004</span>Reject booking request for a time outside working hours</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>Patient has 0 upcoming appointments</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Time: <code>03:00</code> (Europe/Warsaw), clearly outside 08:00-16:00</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a valid booking request for <code>Dr. Test Nowak</code>.</li>
+      <li>Replay the request with the time changed to <code>03:00</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request with a validation error; no appointment is created.</li>
+      <li>The patient's list of upcoming appointments is unchanged.</li>
+      <li>The slot list for that date still shows no slot at <code>03:00</code>.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-005">
+    <h4><span class="tc-id">TC-NEG-005</span>Reject booking request for a time that is not a 15-minute increment</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>Patient has 0 upcoming appointments</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Time: <code>09:07</code> (Europe/Warsaw), not on the 15-minute grid</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a valid booking request for <code>Dr. Test Nowak</code>.</li>
+      <li>Replay the request with the time changed to <code>09:07</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request with a validation error; no appointment is created.</li>
+      <li>The patient's list of upcoming appointments is unchanged.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-006">
+    <h4><span class="tc-id">TC-NEG-006</span>Reject booking request for a slot in the past</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>Patient has 0 upcoming appointments</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: yesterday</li>
+      <li>Time: <code>10:00</code> (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a valid booking request for <code>Dr. Test Nowak</code>.</li>
+      <li>Replay the request with the date changed to yesterday and the time set to <code>10:00</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request with a validation error; no appointment is created.</li>
+      <li>The patient's list of upcoming appointments is unchanged.</li>
+      <li>The past slot is not shown as available in the slot list.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-007">
+    <h4><span class="tc-id">TC-NEG-007</span>Reject booking of a slot that was booked after the slot list was loaded</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>anna.test@example.com</code> and <code>jan.test@example.com</code> are registered, each with 0 upcoming appointments</li>
+      <li>Anna has the slot list of <code>Dr. Test Nowak</code> for today + 5 days open, showing slot <code>10:00</code> as available</li>
+      <li>Jan then books slot <code>10:00</code> for the same doctor and date, and his booking is confirmed</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Slot: <code>10:00</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>As Anna, without refreshing the slot list, select slot <code>10:00</code>.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The booking is rejected and Anna sees a message that the slot cannot be booked and that she should choose another one (the exact text is not defined for this case).</li>
+      <li>No appointment is created for Anna; slot <code>10:00</code> remains booked by Jan only.</li>
+      <li>After the slot list is refreshed, slot <code>10:00</code> is not shown as available.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-008">
+    <h4><span class="tc-id">TC-NEG-008</span>Do not disclose who booked an unavailable slot</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>anna.test@example.com</code> and <code>jan.test@example.com</code> are registered</li>
+      <li>Jan has a booked appointment with <code>Dr. Test Nowak</code> on today + 5 days at <code>10:00</code></li>
+      <li>Anna is logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Slot: <code>10:00</code> (booked by Jan)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>As Anna, open the slot list of <code>Dr. Test Nowak</code> for today + 5 days.</li>
+      <li>Inspect the slot list response in the browser developer tools or API client.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Slot <code>10:00</code> is not shown as available.</li>
+      <li>The response contains no name, email, patient ID, or booking number of Jan or of any other patient.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-009">
+    <h4><span class="tc-id">TC-NEG-009</span>Reject confirmation when no slot is selected</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is registered and logged in</li>
+      <li>Patient has 0 upcoming appointments</li>
+      <li><code>Dr. Test Nowak</code> and a bookable date are selected, but no slot is selected</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Slot: none (empty value in the API request)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Try to confirm the booking in the UI without selecting a slot.</li>
+      <li>Send the booking request directly with an empty slot value.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The confirm action is unavailable or shows a validation message asking the patient to select a slot; the direct request is rejected with a validation error.</li>
+      <li>No appointment is created and no booking number is issued.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-010">
+    <h4><span class="tc-id">TC-NEG-010</span>Reject booking confirmation after the session has expired</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in and has selected doctor <code>Dr. Test Nowak</code>, date today + 5 days, and slot <code>10:00</code></li>
+      <li>The session is then invalidated (logged out in another tab or expired by the server)</li>
+      <li>Patient has 0 upcoming appointments</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 5 days</li>
+      <li>Slot: <code>10:00</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Invalidate the patient's session in a second browser tab.</li>
+      <li>In the first tab, click the confirm button for slot <code>10:00</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The booking is rejected and the patient is asked to log in again.</li>
+      <li>No appointment is created and slot <code>10:00</code> remains available to other patients.</li>
+      <li>No confirmation is shown and no booking number is issued.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-011">
+    <h4><span class="tc-id">TC-NEG-011</span>Deny access to another patient's booking confirmation</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>anna.test@example.com</code> and <code>jan.test@example.com</code> are registered</li>
+      <li>Jan has a confirmed booking with a known booking number</li>
+      <li>Anna is logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Jan's booking number: the number shown on Jan's confirmation</li>
+      <li>A non-existent booking number: <code>CS-0000000</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>As Anna, request the booking details page or API endpoint using Jan's booking number.</li>
+      <li>As Anna, request the same endpoint using the non-existent booking number <code>CS-0000000</code>.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Both requests are denied with the same response (for example &quot;not found&quot;); no doctor, date, time, or patient data of Jan is returned.</li>
+      <li>The response for Jan's booking number cannot be distinguished from the response for a non-existent number.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-012">
+    <h4><span class="tc-id">TC-NEG-012</span>Reject fourth booking sent directly to the server for a different doctor</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in and has 3 upcoming appointments: 2 with <code>Dr. Test Nowak</code> and 1 with <code>Dr. Test Kowalska</code></li>
+      <li>A slot with a third doctor <code>Dr. Test Wisniewski</code> is free</li>
+      <li>An API client can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Wisniewski</code></li>
+      <li>Date: today + 10 days</li>
+      <li>Slot: <code>11:15</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Capture a booking request, or build one manually, for <code>Dr. Test Wisniewski</code> on today + 10 days at <code>11:15</code>.</li>
+      <li>Send the request directly to the server, bypassing the UI check.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request and no appointment is created.</li>
+      <li>Anna still has exactly 3 upcoming appointments.</li>
+      <li>Slot <code>11:15</code> with <code>Dr. Test Wisniewski</code> remains available to other patients.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-013">
+    <h4><span class="tc-id">TC-NEG-013</span>Enforce the 3-appointment limit under concurrent booking requests</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in and has exactly 2 upcoming appointments</li>
+      <li>Two different free slots exist (<code>Dr. Test Nowak</code> at <code>09:00</code> and <code>Dr. Test Kowalska</code> at <code>09:30</code>, both on today + 12 days)</li>
+      <li>A tool that can send two requests in parallel is available</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Request A: <code>Dr. Test Nowak</code>, today + 12 days, <code>09:00</code></li>
+      <li>Request B: <code>Dr. Test Kowalska</code>, today + 12 days, <code>09:30</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Prepare both booking requests with Anna's valid session.</li>
+      <li>Send request A and request B at the same moment.</li>
+      <li>Open Anna's list of upcoming appointments.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Exactly one of the two requests succeeds; the other is rejected with the message &quot;You already have the maximum of 3 upcoming appointments. Cancel one to book a new appointment.&quot;</li>
+      <li>Anna has exactly 3 upcoming appointments, never 4.</li>
+      <li>The slot of the rejected request remains available to other patients.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-014">
+    <h4><span class="tc-id">TC-NEG-014</span>Ignore a patient identifier tampered in the booking request</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5, AC-6</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>anna.test@example.com</code> (0 upcoming appointments) and <code>jan.test@example.com</code> (3 upcoming appointments) are registered</li>
+      <li>Anna is logged in</li>
+      <li>An API client or browser developer tools can send the booking request directly</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 6 days</li>
+      <li>Slot: <code>12:00</code></li>
+      <li>Tampered field: patient ID or email in the request body set to Jan's identifier</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>As Anna, capture a valid booking request for slot <code>12:00</code>.</li>
+      <li>Replay the request with the patient identifier in the body changed to Jan's identifier.</li>
+      <li>Open the upcoming appointments of Anna and of Jan.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server takes the identity from Anna's session only: either the request is rejected, or the appointment is created for Anna, never for Jan.</li>
+      <li>Jan's list of upcoming appointments is unchanged and Jan does not receive a confirmation.</li>
+      <li>No data of Jan is disclosed in the response.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-015">
+    <h4><span class="tc-id">TC-NEG-015</span>Create only one appointment when the confirm request is submitted twice</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in and has 0 upcoming appointments</li>
+      <li>Slot <code>10:30</code> with <code>Dr. Test Nowak</code> on today + 7 days is selected and ready to confirm</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: <code>Dr. Test Nowak</code></li>
+      <li>Date: today + 7 days</li>
+      <li>Slot: <code>10:30</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Double-click the confirm button quickly, or send the same confirm request twice in parallel.</li>
+      <li>Open Anna's list of upcoming appointments.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Exactly one appointment and one booking number exist for slot <code>10:30</code>.</li>
+      <li>The duplicate request is rejected or ignored and does not create a second appointment or consume the patient's appointment limit twice.</li>
+      <li>Anna has exactly 1 upcoming appointment.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-016">
+    <h4><span class="tc-id">TC-NEG-016</span>Reject cancellation of an appointment that is already cancelled</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in</li>
+      <li>Anna cancelled her appointment on today + 8 days more than 24 hours before its start; the appointment is in the state cancelled</li>
+      <li>Another patient <code>jan.test@example.com</code> has since booked the released slot</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Booking number: the number of Anna's cancelled appointment</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Send the cancel request for the cancelled booking number again (replay the earlier request).</li>
+      <li>Open the list of upcoming appointments of Anna and of Jan.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The repeated request is rejected; no state changes.</li>
+      <li>Jan's new appointment for the same slot is not cancelled or changed.</li>
+      <li>Anna's list of upcoming appointments does not contain the cancelled appointment.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-017">
+    <h4><span class="tc-id">TC-NEG-017</span>Deny cancellation of another patient's appointment</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patients <code>anna.test@example.com</code> and <code>jan.test@example.com</code> are registered</li>
+      <li>Jan has an upcoming appointment more than 48 hours in the future, with a known booking number</li>
+      <li>Anna is logged in</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Jan's booking number: the number shown on Jan's confirmation</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>As Anna, send the cancel request using Jan's booking number.</li>
+      <li>Log in as Jan and open the list of upcoming appointments.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The request is denied (for example &quot;not found&quot; or &quot;forbidden&quot;); Jan's appointment is not cancelled.</li>
+      <li>The response contains no details of Jan's appointment.</li>
+      <li>Jan's slot stays booked and Jan receives no cancellation email.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-018">
+    <h4><span class="tc-id">TC-NEG-018</span>Deny cancellation request without a valid session</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8, AC-9</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> has an upcoming appointment more than 48 hours in the future</li>
+      <li>No user is logged in (no session cookie or token is sent)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Booking number: the number of Anna's appointment</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Send the cancel request with Anna's booking number and no session cookie or token.</li>
+      <li>Log in as Anna and open the list of upcoming appointments.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The request is rejected as unauthenticated (login required); no state changes.</li>
+      <li>Anna's appointment is still listed as upcoming and the slot stays booked.</li>
+      <li>The response contains no appointment details.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-019">
+    <h4><span class="tc-id">TC-NEG-019</span>Reject a direct cancel request when less than 24 hours remain</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in</li>
+      <li>Anna has an appointment that starts in about 10 hours (Europe/Warsaw)</li>
+      <li>An API client can send the cancel request directly, bypassing the hidden or disabled cancel button</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Booking number: the number of Anna's appointment starting in about 10 hours</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Send the cancel request for the booking number directly to the server.</li>
+      <li>Open Anna's list of upcoming appointments.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The server rejects the request with the message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot;</li>
+      <li>The appointment is not cancelled and stays in the upcoming list.</li>
+      <li>The slot is not released and no cancellation email is sent.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-NEG-020">
+    <h4><span class="tc-id">TC-NEG-020</span>Evaluate the 24-hour cancellation rule in clinic time zone regardless of device time zone</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.test@example.com</code> is logged in</li>
+      <li>Anna has an appointment that starts in about 20 hours (Europe/Warsaw)</li>
+      <li>Anna's device time zone is set to <code>Pacific/Kiritimati</code> (UTC+14) or the device clock is moved forward or back so that the local time suggests more than 24 hours remain</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Device time zone: <code>Pacific/Kiritimati</code></li>
+      <li>Booking number: the number of the appointment starting in about 20 hours</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Change the device time zone to <code>Pacific/Kiritimati</code>.</li>
+      <li>Open the upcoming appointments and try to cancel the appointment.</li>
+      <li>Send the cancel request directly with a client-supplied timestamp that is 30 hours before the appointment start, if the API accepts one.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The cancellation is rejected with the message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot;</li>
+      <li>The appointment start is shown in Europe/Warsaw time and is not shifted by the device time zone.</li>
+      <li>Client-supplied time values are ignored; the appointment is not cancelled.</li>
+    </ul>
+  </section>
+
+  <h3>5.3 Boundary and edge cases</h3>
+  <section class="tc" id="TC-EDGE-001">
+    <h4><span class="tc-id">TC-EDGE-001</span>Offer today+1 as the first bookable date (minimum date)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has working hours on every day</li>
+      <li>Current clinic date (Europe/Warsaw) is 2026-09-24</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Expected first selectable date: 2026-09-25 (today+1)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow.</li>
+      <li>Select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Look at the calendar of selectable dates.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The date 2026-09-25 is selectable.</li>
+      <li>2026-09-25 is the earliest selectable date in the calendar.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-002">
+    <h4><span class="tc-id">TC-EDGE-002</span>Do not offer today as a bookable date (minimum minus one day)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Current clinic date (Europe/Warsaw) is 2026-09-24 and the current time is 07:00</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Tested date: 2026-09-24 (today, today+0)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow.</li>
+      <li>Select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Try to select the date 2026-09-24 in the calendar.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The date 2026-09-24 is not selectable.</li>
+      <li>No same-day slots are shown for any date selection.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-003">
+    <h4><span class="tc-id">TC-EDGE-003</span>Offer today+30 as the last bookable date (maximum date)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Current clinic date (Europe/Warsaw) is 2026-09-24</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Tested date: 2026-10-24 (today+30)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow.</li>
+      <li>Select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-10-24 in the calendar.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The date 2026-10-24 is selectable.</li>
+      <li>2026-10-24 is the latest selectable date in the calendar.</li>
+      <li>The doctor's free slots for 2026-10-24 are displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-004">
+    <h4><span class="tc-id">TC-EDGE-004</span>Do not offer today+31 as a bookable date (maximum plus one day)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Current clinic date (Europe/Warsaw) is 2026-09-24</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Tested date: 2026-10-25 (today+31)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow.</li>
+      <li>Select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Try to select the date 2026-10-25 in the calendar.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The date 2026-10-25 is not selectable.</li>
+      <li>No slots are shown for 2026-10-25.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-005">
+    <h4><span class="tc-id">TC-EDGE-005</span>Offer the 08:00 slot as the first slot of the day (minimum start time)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has no booked slots on 2026-09-30</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Date: 2026-09-30</li>
+      <li>Tested slot start time: 08:00 (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-09-30.</li>
+      <li>Look at the first entry in the list of free slots.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The 08:00 slot is displayed as available.</li>
+      <li>08:00 is the earliest slot in the list.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-006">
+    <h4><span class="tc-id">TC-EDGE-006</span>Do not offer a 07:45 slot before working hours (minimum minus one step)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has no booked slots on 2026-09-30</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Date: 2026-09-30</li>
+      <li>Tested slot start time: 07:45 (15 minutes before 08:00)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-09-30.</li>
+      <li>Search the list of free slots for a 07:45 entry.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>No 07:45 slot is displayed.</li>
+      <li>No slot earlier than 08:00 is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-007">
+    <h4><span class="tc-id">TC-EDGE-007</span>Offer the 15:45 slot as the last slot of the day (maximum start time)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has no booked slots on 2026-09-30</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Date: 2026-09-30</li>
+      <li>Tested slot: 15:45-16:00 (15 minutes, ends exactly at the end of working hours)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-09-30.</li>
+      <li>Look at the last entry in the list of free slots.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The 15:45 slot is displayed as available.</li>
+      <li>15:45 is the latest slot in the list.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-008">
+    <h4><span class="tc-id">TC-EDGE-008</span>Do not offer a 16:00 slot after working hours (maximum plus one step)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has no booked slots on 2026-09-30</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Date: 2026-09-30</li>
+      <li>Tested slot start time: 16:00 (would end at 16:15, outside working hours)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-09-30.</li>
+      <li>Search the list of free slots for a 16:00 entry.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>No 16:00 slot is displayed.</li>
+      <li>No slot starting at or after 16:00 is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-009">
+    <h4><span class="tc-id">TC-EDGE-009</span>Show slots only on 15-minute steps (partition: off-grid time 08:10)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td><a href="https://www.geeksforgeeks.org/software-engineering/equivalence-partitioning-method/">https://www.geeksforgeeks.org/software-engineering/equivalence-partitioning-method/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has no booked slots on 2026-09-30</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Doctor: Dr. Jan Nowak</li>
+      <li>Date: 2026-09-30</li>
+      <li>Valid partition representative: 08:15 (minute value 15)</li>
+      <li>Invalid partition representative: 08:10 (minute value not in 00, 15, 30, 45)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-09-30.</li>
+      <li>Check the list of free slots for the 08:15 entry.</li>
+      <li>Check the list of free slots for an 08:10 entry.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The 08:15 slot is displayed as available.</li>
+      <li>No 08:10 slot is displayed.</li>
+      <li>Consecutive slots in the list start exactly 15 minutes apart.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-011">
+    <h4><span class="tc-id">TC-EDGE-011</span>Accept the 3rd upcoming appointment when the patient has 2 (at the limit)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has exactly 2 upcoming appointments</li>
+      <li>Doctor &quot;Dr. Jan Nowak&quot; has the slot 2026-10-02 10:00 free</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Upcoming appointments before booking: 2</li>
+      <li>Slot: 2026-10-02 10:00 with Dr. Jan Nowak</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow and select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Select the date 2026-10-02 and the 10:00 slot.</li>
+      <li>Confirm the booking.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A booking confirmation with doctor, date, time, and a booking number is displayed.</li>
+      <li>The patient has 3 upcoming appointments.</li>
+      <li>No limit message is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-014">
+    <h4><span class="tc-id">TC-EDGE-014</span>Allow cancellation with 24 hours 1 minute remaining (limit plus one step)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on 2026-10-07 at 10:00 (Europe/Warsaw)</li>
+      <li>The system clock is set to 2026-10-06 09:59 (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-07 10:00</li>
+      <li>Time remaining: 24 hours 1 minute</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments.</li>
+      <li>Select the appointment of 2026-10-07 10:00.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is cancelled and no longer appears in the list of upcoming appointments.</li>
+      <li>No cancellation restriction message is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-015">
+    <h4><span class="tc-id">TC-EDGE-015</span>Allow cancellation with exactly 24 hours remaining (limit)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on 2026-10-07 at 10:00 (Europe/Warsaw)</li>
+      <li>The system clock is set to 2026-10-06 10:00:00 (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-07 10:00</li>
+      <li>Time remaining: exactly 24 hours 0 minutes 0 seconds</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments.</li>
+      <li>Select the appointment of 2026-10-07 10:00.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is cancelled and no longer appears in the list of upcoming appointments.</li>
+      <li>No cancellation restriction message is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-016">
+    <h4><span class="tc-id">TC-EDGE-016</span>Reject cancellation with 23 hours 59 minutes remaining (limit minus one step)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on 2026-10-07 at 10:00 (Europe/Warsaw)</li>
+      <li>The system clock is set to 2026-10-06 10:01 (Europe/Warsaw)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-07 10:00</li>
+      <li>Time remaining: 23 hours 59 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments.</li>
+      <li>Select the appointment of 2026-10-07 10:00.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is not cancelled and still appears in the list of upcoming appointments.</li>
+      <li>The message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot; is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-017">
+    <h4><span class="tc-id">TC-EDGE-017</span>Start the calendar at the clinic's today+1 when the device date is already ahead</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The system clock is 2026-09-24 23:30 in Europe/Warsaw (just before midnight)</li>
+      <li>The patient's device time zone is Pacific/Auckland, where the local date is already 2026-09-25</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Clinic date: 2026-09-24 (Europe/Warsaw)</li>
+      <li>Device date: 2026-09-25 (Pacific/Auckland)</li>
+      <li>Doctor: Dr. Jan Nowak</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the booking flow on the device.</li>
+      <li>Select doctor &quot;Dr. Jan Nowak&quot;.</li>
+      <li>Look at the earliest selectable date in the calendar.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The earliest selectable date is 2026-09-25 (clinic today+1), not 2026-09-26.</li>
+      <li>The date 2026-09-24 is not selectable.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-018">
+    <h4><span class="tc-id">TC-EDGE-018</span>Evaluate the 24-hour cancellation limit in clinic time when the device time zone differs</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on 2026-10-10 at 10:00 (Europe/Warsaw)</li>
+      <li>The system clock is 2026-10-09 10:00:00 Europe/Warsaw, which is 01:00:00 on the device in America/Los_Angeles</li>
+      <li>The patient's device time zone is America/Los_Angeles</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-10 10:00 Europe/Warsaw (2026-10-10 01:00 on the device)</li>
+      <li>Time remaining: exactly 24 hours</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments on the device.</li>
+      <li>Select the appointment of 2026-10-10.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment time is displayed as 10:00 (Europe/Warsaw).</li>
+      <li>The appointment is cancelled and no longer appears in the list of upcoming appointments.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-019">
+    <h4><span class="tc-id">TC-EDGE-019</span>Allow cancellation at exactly 24 real hours across the October 2026 clock change</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://kidsinthecity.pl/time-change-in-poland/">https://kidsinthecity.pl/time-change-in-poland/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on Sunday 2026-10-25 at 09:00 CET (UTC+1), after the clock change at 03:00 CEST</li>
+      <li>The system clock is set to 2026-10-24 10:00:00 CEST (UTC+2), which is exactly 24 hours of elapsed time before the start (23 wall-clock hours on the clinic clock)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-25 09:00 CET (2026-10-25 08:00 UTC)</li>
+      <li>Cancellation moment: 2026-10-24 10:00:00 CEST (2026-10-24 08:00 UTC)</li>
+      <li>Elapsed time remaining: exactly 24 hours</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments.</li>
+      <li>Select the appointment of 2026-10-25 09:00.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is cancelled and no longer appears in the list of upcoming appointments.</li>
+      <li>No cancellation restriction message is displayed.</li>
+    </ul>
+  </section>
+  <section class="tc" id="TC-EDGE-020">
+    <h4><span class="tc-id">TC-EDGE-020</span>Reject cancellation 1 minute after the 24-hour limit across the October 2026 clock change</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://kidsinthecity.pl/time-change-in-poland/">https://kidsinthecity.pl/time-change-in-poland/</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Patient <code>anna.kowalska.test@example.com</code> is registered and logged in</li>
+      <li>The patient has an upcoming appointment on Sunday 2026-10-25 at 09:00 CET (UTC+1), after the clock change at 03:00 CEST</li>
+      <li>The system clock is set to 2026-10-24 10:01 CEST (UTC+2), which is 23 hours 59 minutes of elapsed time before the start</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Appointment start: 2026-10-25 09:00 CET (2026-10-25 08:00 UTC)</li>
+      <li>Cancellation moment: 2026-10-24 10:01 CEST (2026-10-24 08:01 UTC)</li>
+      <li>Elapsed time remaining: 23 hours 59 minutes</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol>
+      <li>Open the list of upcoming appointments.</li>
+      <li>Select the appointment of 2026-10-25 09:00.</li>
+      <li>Click &quot;Cancel appointment&quot; and confirm.</li>
+    </ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The appointment is not cancelled and still appears in the list of upcoming appointments.</li>
+      <li>The message &quot;This appointment can no longer be cancelled online because it starts in less than 24 hours.&quot; is displayed.</li>
+    </ul>
+  </section>
+
+  <h3>5.4 Regression</h3>
+  <p class="na">Not applicable for this run - regression analysis was not selected because the feature is a new capability and no existing area is described as changed.</p>
+
+  <h2>6. Assumptions and risks</h2>
+  <ul>
+    <li>The patient is already registered and authenticated before starting the booking flow; registration and login are out of scope.</li>
+    <li>The booking and cancellation confirmation emails contain the same appointment details shown on screen (doctor, date, time, booking number).</li>
+    <li>Cancelling an appointment immediately releases the slot so it becomes bookable by other patients.</li>
+    <li>The doctor's working hours (08:00-16:00) apply on every bookable day; doctor days off and holidays are not described, so no cases cover them.</li>
+    <li>All dates in the cases use 2026-10-05 or 2026-09-24 as an example &quot;today&quot;; the tester shifts them relative to the real current date so that dates stay within the bookable window.</li>
+    <li>The requirements do not define the wording of the booking confirmation, the cancellation success message, or the booking number format; expected results describe the observable outcome without exact wording. The same applies to the stale-slot booking message and validation errors on tampered requests.</li>
+    <li>The requirements do not name a specific UI path for cancelling; the cases use the patient's &quot;upcoming appointments&quot; list as a generic entry point.</li>
+    <li>Several cases (TC-FUN-004, TC-EDGE-014 to TC-EDGE-020) need a test environment where the system clock can be set. TC-FUN-004 also needs a slot list left open across the date change, because same-day dates are not selectable.</li>
+    <li>A 15-minute slot must end within working hours, so the last slot starts at 15:45 and a 16:00 slot is out of range; the requirements do not state this explicitly.</li>
+    <li>The 24-hour limit is measured as elapsed real time between the cancellation moment and the appointment start, including across a daylight saving time change, and to the minute or finer.</li>
+    <li>TC-EDGE-019 and TC-EDGE-020 rely on data seeded directly (an appointment 31 days ahead), because 2026-10-25 is outside the 30-day booking window on the run date.</li>
+    <li>Both a &quot;not found&quot; and a &quot;forbidden&quot; response are treated as safe for access-control cases (TC-NEG-011, TC-NEG-014, TC-NEG-017), provided no data of another patient is disclosed.</li>
+    <li>Rate limiting and brute-force cases are not included because no limits are defined for the booking and cancellation endpoints; this can be raised as a clarification.</li>
+    <li>Email delivery is assumed to be visible in a test mailbox within a reasonable time; delivery failure paths are not defined.</li>
+    <li>No boundary case exists for AC-3 (past slots): today is not bookable, so a past slot cannot appear on a selectable date; AC-3 is covered by TC-FUN-004 and TC-NEG-006.</li>
+    <li>Test case numbers TC-EDGE-010, TC-EDGE-012 and TC-EDGE-013 are intentionally absent; they were removed as duplicates of TC-FUN-006 and TC-FUN-008.</li>
+    <li>BR-5 has no acceptance criterion of its own; it is exercised by TC-FUN-006 (no payment step) and TC-FUN-014 (no rescheduling).</li>
+  </ul>
+
+  <h2>7. References</h2>
+  <ul>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html">Insecure Direct Object Reference Prevention - OWASP Cheat Sheet Series</a> - verify permission on every access; test with two accounts that one user cannot read or change another user's objects</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Business_Logic_Security_Cheat_Sheet.html">Business Logic Security - OWASP Cheat Sheet Series</a> - server-side enforcement of business rules, identity taken from the session, atomic operations, concurrent-request tests, invalid state transitions</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">Input Validation - OWASP Cheat Sheet Series</a> - server-side validation of dates and structured fields, rejection of tampered values and injection strings</li>
+    <li><a href="https://www.istqb.guru/decision-tables-equivalence-partitioning-boundary-value-analysis/">ISTQB guide: Decision Tables, Equivalence Partitioning, Boundary Value Analysis</a> - two-value boundary value rule and one representative per partition</li>
+    <li><a href="https://www.geeksforgeeks.org/software-engineering/equivalence-partitioning-method/">Equivalence Partitioning Method - GeeksforGeeks</a> - valid and invalid partitions, one representative per partition</li>
+    <li><a href="https://kidsinthecity.pl/time-change-in-poland/">Time change in Poland: last Sunday in March and October</a> - daylight saving time ends in Poland on Sunday 25 October 2026 (clocks go back from 03:00 to 02:00)</li>
+  </ul>
+
+  <h2>8. Change log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Revision</th><th>Date</th><th>Change</th></tr>
+    <tr><td>1</td><td>2026-09-24</td><td>Initial draft</td></tr>
+    <tr><td>2</td><td>2026-09-24</td><td>Fixed suite gate findings: S2</td></tr>
+    <tr><td>3</td><td>2026-09-24</td><td>Addressed F-1: priority of TC-FUN-010 and TC-NEG-015 (double booking of the same slot, AC-7) raised to Critical; summary totals recomputed</td></tr>
+    <tr><td>4</td><td>2026-09-24</td><td>Addressed F-1: TC-FUN-010 and TC-NEG-015 are Critical; TC-NEG-007 (AC-4, stale slot list) and TC-NEG-013 (AC-6, two different slots) stay High because they do not check double booking of the same slot under AC-7; totals confirmed (51 cases)</td></tr>
+    <tr><td>4</td><td>2026-09-24</td><td>Addressed F-2: no new test case added; the requested positive scenario (patient with 3 upcoming appointments cancels one, then books a new slot successfully) is already covered by the existing TC-FUN-009 (AC-6)</td></tr>
+  </table></div>
+</main>
+</body>
+</html>

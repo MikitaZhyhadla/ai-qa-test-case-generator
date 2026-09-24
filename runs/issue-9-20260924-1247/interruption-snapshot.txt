@@ -1,0 +1,17 @@
+﻿State snapshot after interruption (2026-09-24T10:58:26.645Z)
+formalize              completed
+clarify                completed
+validate-requirements  completed
+plan                   completed
+design-functional      in_progress
+design-negative        in_progress
+design-edge            in_progress
+design-regression      skipped
+aggregate              pending
+validate-design        pending
+build-suite            pending
+validate-suite         pending
+approval               pending
+render-markdown        pending
+render-html            pending
+report                 pending
