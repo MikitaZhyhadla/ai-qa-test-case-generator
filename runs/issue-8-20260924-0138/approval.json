@@ -1,0 +1,11 @@
+{
+  "run_id": "issue-8-20260924-0138",
+  "decision": "approved",
+  "feedback": null,
+  "decided_at": "2026-09-24T00:23:31.634Z",
+  "decided_at_local": "2026-09-24 02:23",
+  "suite_revision": 2,
+  "suite_sha256": "43bf92e23d4b02eb9413353f812d27ca6a35b9952637aea9583a46f9daff9616",
+  "recorded_by": "approval-recorder hook (UserPromptSubmit)",
+  "history": []
+}
