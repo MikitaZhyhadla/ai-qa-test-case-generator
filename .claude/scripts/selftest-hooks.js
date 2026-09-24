@@ -79,6 +79,8 @@ function main() {
   cli('set', RUN, 'approval', JSON.stringify({ status: 'pending', suite_revision: 1, suite_sha256: sha }));
   cli('set', RUN, 'awaiting', 'approval');
   check('recorder ignores ordinary messages', hook('approval-recorder.js', { prompt: 'looks good' }).json === null);
+  r = hook('approval-recorder.js', { prompt: `APPROVE ${RUN}\n\nselected editor text` });
+  check('recorder explains a decision that is not exactly formatted', !fs.existsSync(runAbs('approval.json')) && /NOT recorded/.test(r.json.hookSpecificOutput.additionalContext));
   hook('approval-recorder.js', { prompt: `REJECT ${RUN}: Add a locked account case.` });
   check('recorder records REJECT with feedback', lib.readJson(runAbs('approval.json')).decision === 'rejected');
   check('guard blocks output after REJECT', denied(hook('approval-gate-guard.js', writeTool(runRel('output/test-suite.md')))));
