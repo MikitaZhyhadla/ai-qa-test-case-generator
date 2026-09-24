@@ -101,6 +101,7 @@ Rules for the report:
 - On `PASS`, the `Retry plan` table has one row with `-` in every cell.
 - Findings name concrete IDs (`AC-3`, `TC-NEG-004`, `IA-2`, section numbers) so the owner can fix them without guessing.
 - For gate G7, check each unique URL with WebFetch using the short prompt `Return only the page title.` to keep responses small.
+- For gate G4, compare every pair of active test cases across all planner artifacts in one pass and list every duplicate you find. An incomplete list causes extra retries.
 - Downstream to regenerate: after a planner -> `coverage-aggregator`, then `validator (test-design)`; after `coverage-aggregator` -> `validator (test-design)`; after `test-suite-builder` -> `validator (suite)`; after `requirements-formalizer` -> `validator (requirements)`.
 
 ## Final message to the coordinator

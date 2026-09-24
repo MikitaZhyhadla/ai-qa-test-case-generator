@@ -2,7 +2,7 @@
 description: Coordinator of the AI QA Test Case Generator. Turns a PBI stored as a GitHub Issue into a validated, human-approved test suite (Markdown/HTML). Usage - /generate-test-cases <issue-number | issue-url> or /generate-test-cases --resume <run-id>
 argument-hint: <issue-number | issue-url> | --resume <run-id>
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(git remote get-url origin), Bash(node .claude/scripts/workflow-state.js *), PowerShell(node .claude/scripts/workflow-state.js *)
+allowed-tools: Read, Glob, Grep, Bash(git remote get-url origin), Bash(node .claude/scripts/workflow-state.js *), PowerShell(node .claude/scripts/workflow-state.js *), Bash(node .claude/scripts/open-report.js *), PowerShell(node .claude/scripts/open-report.js *)
 ---
 
 # /generate-test-cases - coordinator
@@ -194,6 +194,7 @@ Never re-run agents that are not in the retry plan, and never skip regenerating 
 ## K. Render and report
 
 1. Mark the selected `render-*` steps `in_progress` and invoke `markdown-builder` and `html-builder` **in parallel** (only the selected ones).
-2. If `post_issue_comment: yes`, post one comment to the issue with the GitHub MCP tool `add_issue_comment`: the run ID, the totals by type, the list of acceptance criteria with their coverage status, and the paths of the output files in the repository. Mark `report` completed. If posting fails, mark `report` failed with the error and continue; it does not block the run.
+2. If `post_issue_comment: yes`, post one comment to the issue with the GitHub MCP tool `add_issue_comment`: the run ID, the totals by type, the list of acceptance criteria with their coverage status, and the paths of the output files in the repository. Take these facts from the `SUMMARY` of `test-suite-builder` and from `artifacts/06-coverage-matrix.md`; do not read the whole suite for this. Mark `report` completed. If posting fails, mark `report` failed with the error and continue; it does not block the run.
 3. `set <run-id> status completed`.
 4. Tell the user the paths of the output files and a one-paragraph summary of the run (number of test cases, gates passed, retries used, revisions).
+5. If `render-html` completed, run `node .claude/scripts/open-report.js <run-id>` to open the HTML report in the user's default browser, and tell the user that the same command reopens it later.
