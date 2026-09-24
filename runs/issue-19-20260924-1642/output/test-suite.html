@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Suite - Notely Newsletter Subscription</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --card: #f6f8fa;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --card: #151b23;
+      --critical: #f85149; --high: #db6d28; --medium: #d29922; --low: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card); }
+  .table-wrap { overflow-x: auto; }
+  .tc { border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+        padding: 14px 18px; margin: 14px 0; page-break-inside: avoid; }
+  .tc h4 { margin: 0 0 10px; font-size: 16px; }
+  .tc-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--muted); margin-right: 6px; }
+  .tc table { background: var(--bg); }
+  .label { font-weight: 600; margin: 10px 0 4px; }
+  .prio { font-weight: 600; }
+  .prio-critical { color: var(--critical); } .prio-high { color: var(--high); }
+  .prio-medium { color: var(--medium); } .prio-low { color: var(--low); }
+  .na { color: var(--muted); font-style: italic; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; }
+  @media print { body { background: #fff; color: #000; } .tc { background: #fff; } a { color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test Suite - Notely Newsletter Subscription</h1>
+  <div class="table-wrap"><table>
+    <tr><th>Run ID</th><td>issue-19-20260924-1642</td></tr>
+    <tr><th>Source issue</th><td><a href="https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19">#19 PBI: Subscribe to the product newsletter</a></td></tr>
+    <tr><th>Revision</th><td>1</td></tr>
+    <tr><th>Status</th><td>Approved</td></tr>
+    <tr><th>Approved at</th><td>2026-09-24 17:25</td></tr>
+    <tr><th>Generated</th><td>2026-09-24 17:45</td></tr>
+  </table></div>
+
+  <h2>1. Summary</h2>
+  <p>Notely, a fictional note-taking web app, gets a newsletter subscription form in the website footer. A visitor enters an email address and clicks &quot;Subscribe&quot;; valid addresses receive a confirmation email and the subscription becomes active only after the confirmation link is opened (double opt-in). Invalid input is rejected and repeated subscriptions create no duplicates. The suite combines functional, negative and security, and boundary and equivalence test cases, because the feature has a 254-character limit and handles personal data with a tokenized link. Regression analysis was not run because the change is a new feature.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th></tr>
+    <tr><td>Functional</td><td>3</td><td>8</td><td>6</td><td>0</td><td>17</td></tr>
+    <tr><td>Negative</td><td>0</td><td>6</td><td>5</td><td>0</td><td>11</td></tr>
+    <tr><td>Security</td><td>4</td><td>4</td><td>0</td><td>0</td><td>8</td></tr>
+    <tr><td>Boundary</td><td>0</td><td>2</td><td>3</td><td>0</td><td>5</td></tr>
+    <tr><td>Equivalence</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+    <tr><td>Regression</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>7</strong></td><td><strong>20</strong></td><td><strong>15</strong></td><td><strong>0</strong></td><td><strong>42</strong></td></tr>
+  </table></div>
+
+  <h2>2. Scope</h2>
+  <p class="label">In scope</p>
+  <ul>
+    <li>Footer form with the &quot;Email&quot; field and the &quot;Subscribe&quot; button</li>
+    <li>Validation of the submitted email address (empty, format, length up to 254 characters, trimming, case-insensitive comparison)</li>
+    <li>Confirmation email and double opt-in activation through the confirmation link</li>
+    <li>Confirmation page, repeated opening of the link, and invalid or tampered links</li>
+    <li>Repeated subscriptions of active and pending addresses</li>
+    <li>Security behavior of the form and the confirmation link (injection, enumeration, token handling, abuse)</li>
+  </ul>
+  <p class="label">Out of scope</p>
+  <ul>
+    <li>Unsubscribing</li>
+    <li>Newsletter content</li>
+    <li>Newsletter sending schedule</li>
+    <li>Regression testing of existing features - not selected because the change is a new feature and no existing behavior is modified</li>
+  </ul>
+
+  <h2>3. Requirements under test</h2>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Acceptance criterion</th></tr>
+    <tr><td>AC-1</td><td>The website footer shows an &quot;Email&quot; field and a &quot;Subscribe&quot; button.</td></tr>
+    <tr><td>AC-2</td><td>When a visitor submits a valid email address of at most 254 characters, the page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</td></tr>
+    <tr><td>AC-3</td><td>When a visitor submits an empty email field (including a value that is empty after trimming spaces), the page shows &quot;Enter a valid email address.&quot; and no subscription record is saved.</td></tr>
+    <tr><td>AC-4</td><td>When a visitor submits an email address that does not match the standard <code>local@domain.tld</code> format, the page shows &quot;Enter a valid email address.&quot; and no subscription record is saved.</td></tr>
+    <tr><td>AC-5</td><td>After a valid email address is submitted, the system sends a confirmation email to that address containing a confirmation link.</td></tr>
+    <tr><td>AC-6</td><td>Until the confirmation link is opened, the subscription is not active.</td></tr>
+    <tr><td>AC-7</td><td>When the visitor opens the confirmation link from the email, the subscription becomes active.</td></tr>
+    <tr><td>AC-8</td><td>When a visitor submits an email address that already has an active subscription, the page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot; (same message as AC-2), no confirmation email is sent, and no duplicate subscription is created.</td></tr>
+    <tr><td>AC-9</td><td>When a visitor submits an email address longer than 254 characters, the page shows &quot;Enter a valid email address.&quot; and no subscription record is saved.</td></tr>
+    <tr><td>AC-10</td><td>When a visitor submits an email address whose subscription is pending (confirmation link not yet opened), the page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot; (same message as AC-2), a new confirmation email is sent, and no duplicate subscription is created.</td></tr>
+    <tr><td>AC-11</td><td>Leading and trailing spaces in the submitted email address are trimmed before validation and saving; an otherwise valid address surrounded by spaces is accepted as in AC-2.</td></tr>
+    <tr><td>AC-12</td><td>Email addresses are compared case-insensitively: submitting an address that differs from an existing active or pending subscription only in letter case is handled as a repeated subscription (AC-8 or AC-10) and creates no duplicate.</td></tr>
+    <tr><td>AC-13</td><td>After the visitor opens a valid confirmation link, a confirmation page states that the subscription is active.</td></tr>
+    <tr><td>AC-14</td><td>When the visitor opens the same valid confirmation link again, the subscription stays active and the same confirmation page as in AC-13 is shown.</td></tr>
+    <tr><td>AC-15</td><td>When the visitor opens an invalid or tampered confirmation link, an error page is shown and no subscription is activated.</td></tr>
+  </table></div>
+
+  <h2>4. Coverage matrix</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Requirement</th><th>Positive</th><th>Negative / Security</th><th>Boundary / Equivalence</th><th>Regression</th></tr>
+    <tr><td>AC-1</td><td>TC-FUN-001</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-2</td><td>TC-FUN-002</td><td>TC-NEG-001, TC-NEG-002</td><td>TC-EDGE-001, TC-EDGE-003, TC-EDGE-004</td><td>-</td></tr>
+    <tr><td>AC-3</td><td>TC-FUN-004</td><td>TC-NEG-004</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-4</td><td>TC-FUN-005</td><td>TC-NEG-006, TC-NEG-007, TC-NEG-008</td><td>TC-EDGE-006, TC-EDGE-010</td><td>-</td></tr>
+    <tr><td>AC-5</td><td>TC-FUN-007</td><td>TC-NEG-009</td><td>TC-EDGE-001</td><td>-</td></tr>
+    <tr><td>AC-6</td><td>TC-FUN-008</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-7</td><td>TC-FUN-009, TC-FUN-012</td><td>TC-NEG-011</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-8</td><td>TC-FUN-015</td><td>TC-NEG-012, TC-NEG-013</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-9</td><td>TC-FUN-006</td><td>TC-NEG-015</td><td>TC-EDGE-002</td><td>-</td></tr>
+    <tr><td>AC-10</td><td>TC-FUN-014</td><td>TC-NEG-013, TC-NEG-016</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-11</td><td>TC-FUN-003</td><td>TC-NEG-017, TC-NEG-018, TC-NEG-020</td><td>TC-EDGE-003</td><td>-</td></tr>
+    <tr><td>AC-12</td><td>TC-FUN-016, TC-FUN-017</td><td>TC-NEG-019, TC-NEG-020</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-13</td><td>TC-FUN-010</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-14</td><td>TC-FUN-011</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-15</td><td>TC-FUN-013</td><td>TC-NEG-021, TC-NEG-022, TC-NEG-023</td><td>-</td><td>-</td></tr>
+  </table></div>
+
+  <h2>5. Test cases</h2>
+  <h3>5.1 Functional</h3>
+  <section class="tc" id="TC-FUN-001">
+    <h4><span class="tc-id">TC-FUN-001</span>Show Email field and Subscribe button in the website footer</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in (anonymous visitor)</li><li>The Notely website home page is reachable in a desktop browser</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>None</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page.</li><li>Scroll to the website footer.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The footer shows an input field labeled &quot;Email&quot;.</li><li>The footer shows a button labeled &quot;Subscribe&quot;.</li><li>The &quot;Email&quot; field is empty and both elements are enabled.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-002">
+    <h4><span class="tc-id">TC-FUN-002</span>Accept a valid email address and show the check-your-inbox message</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>No subscription exists for <code>maria.kowalski@example.com</code></li><li>The test mailbox for <code>maria.kowalski@example.com</code> is accessible</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>maria.kowalski@example.com</code> (26 characters, well within the allowed length per BR-1)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>maria.kowalski@example.com</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>A subscription record for <code>maria.kowalski@example.com</code> exists in the pending state.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-003">
+    <h4><span class="tc-id">TC-FUN-003</span>Trim leading and trailing spaces and accept the address</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>No subscription exists for <code>tomas.berg@example.com</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email typed into the field: <code>   tomas.berg@example.com   </code> (three spaces before and after)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter the value <code>   tomas.berg@example.com   </code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>The saved subscription record contains the address <code>tomas.berg@example.com</code> without leading or trailing spaces (BR-5).</li><li>A confirmation email is delivered to <code>tomas.berg@example.com</code>.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-004">
+    <h4><span class="tc-id">TC-FUN-004</span>Reject an empty email field with a validation message</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>The subscriber records contain no entries created during this test</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: (empty)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Leave the &quot;Email&quot; field empty.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved (BR-4).</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-005">
+    <h4><span class="tc-id">TC-FUN-005</span>Reject an email address without the local@domain.tld format</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>No subscription exists for <code>anna.test</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test</code> (no &quot;@&quot; and no domain)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>anna.test</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved (BR-4, BR-5).</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-006">
+    <h4><span class="tc-id">TC-FUN-006</span>Reject a clearly over-long email address with a validation message</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>The subscriber records contain no entry for the test address</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: the letter <code>a</code> repeated 290 times followed by <code>@example.com</code> (302 characters, clearly above the 254-character maximum of BR-1)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Paste the 302-character address into the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved (BR-1, BR-4).</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-007">
+    <h4><span class="tc-id">TC-FUN-007</span>Send a confirmation email with a confirmation link after a valid submission</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>No subscription exists for <code>lena.fischer@example.com</code></li><li>The test mailbox for <code>lena.fischer@example.com</code> is empty and accessible</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>lena.fischer@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>lena.fischer@example.com</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Open the test mailbox for <code>lena.fischer@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Exactly one new email from Notely is present in the mailbox.</li><li>The email contains a clickable confirmation link.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-008">
+    <h4><span class="tc-id">TC-FUN-008</span>Keep the subscription pending until the confirmation link is opened</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>No subscription exists for <code>oliver.grant@example.com</code></li><li>The tester can view the subscription status of an address in the test environment (subscriber records or admin view)</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>oliver.grant@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>oliver.grant@example.com</code> in the &quot;Email&quot; field and click &quot;Subscribe&quot;.</li><li>Do not open the confirmation link in the received email.</li><li>Check the subscription status of <code>oliver.grant@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The subscription status is &quot;pending&quot; and not &quot;active&quot; (BR-2).</li><li>No confirmation page has been shown and the status stays unchanged while the link is unopened.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-009">
+    <h4><span class="tc-id">TC-FUN-009</span>Activate the subscription when the confirmation link is opened</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>sofia.marin@example.com</code> and its confirmation email is in the accessible test mailbox</li><li>The tester can view the subscription status in the test environment</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>sofia.marin@example.com</code></li><li>Confirmation link: the link from the received email</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation email in the mailbox of <code>sofia.marin@example.com</code>.</li><li>Click the confirmation link.</li><li>Check the subscription status of <code>sofia.marin@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The subscription status changes from &quot;pending&quot; to &quot;active&quot; (BR-2).</li><li>The confirmation page is displayed (content is checked in TC-FUN-010).</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-010">
+    <h4><span class="tc-id">TC-FUN-010</span>Show a confirmation page stating that the subscription is active</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-13</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>david.okafor@example.com</code> and its confirmation email is in the accessible test mailbox</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>david.okafor@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation email in the mailbox of <code>david.okafor@example.com</code>.</li><li>Click the confirmation link.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>A confirmation page opens in the browser.</li><li>The page states that the subscription is active.</li><li>The page shows no error message.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-011">
+    <h4><span class="tc-id">TC-FUN-011</span>Keep the subscription active and show the same page when the link is opened again</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-14</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>The subscription for <code>nina.petrova@example.com</code> is active, activated by opening its confirmation link once</li><li>The same confirmation email is still in the test mailbox</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>nina.petrova@example.com</code></li><li>Confirmation link: the link already used once</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation email in the mailbox of <code>nina.petrova@example.com</code>.</li><li>Click the same confirmation link a second time.</li><li>Check the subscription status of <code>nina.petrova@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The same confirmation page as after the first open is shown, stating that the subscription is active.</li><li>The subscription status remains &quot;active&quot;.</li><li>Only one subscription record exists for <code>nina.petrova@example.com</code>.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-012">
+    <h4><span class="tc-id">TC-FUN-012</span>Activate the subscription with a confirmation link opened long after it was sent</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>hugo.lindqvist@example.com</code>; its confirmation email was sent 30 days ago (or the test environment clock is set 30 days ahead after sending)</li><li>The confirmation email is in the accessible test mailbox</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>hugo.lindqvist@example.com</code></li><li>Age of the confirmation link: 30 days</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation email in the mailbox of <code>hugo.lindqvist@example.com</code>.</li><li>Click the confirmation link.</li><li>Check the subscription status of <code>hugo.lindqvist@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The confirmation page states that the subscription is active.</li><li>The subscription status is &quot;active&quot;; the link did not expire (BR-8).</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-013">
+    <h4><span class="tc-id">TC-FUN-013</span>Show an error page and activate nothing for a tampered confirmation link</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>eva.novak@example.com</code> and its confirmation email is in the accessible test mailbox</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>eva.novak@example.com</code></li><li>Tampered link: the original confirmation link with the last 5 characters of the token replaced by <code>XXXXX</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation email in the mailbox of <code>eva.novak@example.com</code> and copy the confirmation link.</li><li>Replace the last 5 characters of the token in the copied link with <code>XXXXX</code>.</li><li>Open the modified link in the browser.</li><li>Check the subscription status of <code>eva.novak@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>An error page is shown instead of the confirmation page.</li><li>The subscription status of <code>eva.novak@example.com</code> remains &quot;pending&quot;.</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-014">
+    <h4><span class="tc-id">TC-FUN-014</span>Resend a confirmation email when the address is already pending</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-10</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>carla.ruiz@example.com</code> (confirmation link not opened)</li><li>The test mailbox for <code>carla.ruiz@example.com</code> contains exactly one confirmation email</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>carla.ruiz@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>carla.ruiz@example.com</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Open the test mailbox for <code>carla.ruiz@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>The mailbox now contains a second, new confirmation email with a confirmation link (BR-7).</li><li>Only one subscription record exists for <code>carla.ruiz@example.com</code>, still in the pending state (BR-3).</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-015">
+    <h4><span class="tc-id">TC-FUN-015</span>Show the same message and send no email when the address is already active</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>An active subscription exists for <code>peter.hall@example.com</code></li><li>The test mailbox for <code>peter.hall@example.com</code> contains exactly one email (the original confirmation email)</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>peter.hall@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>peter.hall@example.com</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Open the test mailbox for <code>peter.hall@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>No new email is present in the mailbox (BR-7).</li><li>Only one subscription record exists for <code>peter.hall@example.com</code>, still active (BR-3).</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-016">
+    <h4><span class="tc-id">TC-FUN-016</span>Treat a different-case address as a repeat of an active subscription</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>An active subscription exists for <code>julia.weber@example.com</code></li><li>The test mailbox for <code>julia.weber@example.com</code> contains exactly one email</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email typed into the field: <code>Julia.Weber@Example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>Julia.Weber@Example.com</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Open the test mailbox for <code>julia.weber@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>No new email is sent (AC-8 behavior, BR-6, BR-7).</li><li>No second subscription record is created; only one record exists for this address, still active (BR-3).</li></ul>
+  </section>
+  <section class="tc" id="TC-FUN-017">
+    <h4><span class="tc-id">TC-FUN-017</span>Treat a different-case address as a repeat of a pending subscription</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The visitor is not logged in</li><li>A pending subscription exists for <code>marco.rossi@example.com</code> (confirmation link not opened)</li><li>The test mailbox for <code>marco.rossi@example.com</code> contains exactly one confirmation email</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email typed into the field: <code>MARCO.ROSSI@EXAMPLE.COM</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the Notely home page and scroll to the footer.</li><li>Enter <code>MARCO.ROSSI@EXAMPLE.COM</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Open the test mailbox for <code>marco.rossi@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows the message &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>A new confirmation email is delivered to the mailbox (AC-10 behavior, BR-6, BR-7).</li><li>No second subscription record is created; only one record exists for this address, still pending (BR-3).</li></ul>
+  </section>
+
+  <h3>5.2 Negative and security</h3>
+  <section class="tc" id="TC-NEG-001">
+    <h4><span class="tc-id">TC-NEG-001</span>Prevent duplicate subscription when Subscribe is double-clicked</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li><li>No subscription exists for <code>anna.test@example.com</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type <code>anna.test@example.com</code> into the footer &quot;Email&quot; field.</li><li>Double-click the &quot;Subscribe&quot; button quickly (two clicks within 200 ms).</li><li>Check the mailbox of <code>anna.test@example.com</code> and the subscription records.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>Exactly one subscription record exists for <code>anna.test@example.com</code>, with a pending (not active) state.</li><li>No server error page or technical error message is shown.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-002">
+    <h4><span class="tc-id">TC-NEG-002</span>Keep the email address out of the URL after submitting the form</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li><li>Browser developer tools (Network tab) are open</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type <code>anna.test@example.com</code> into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Inspect the address bar URL and the recorded request URL and headers in the Network tab.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The address bar URL does not contain <code>anna.test@example.com</code> or any encoded form of it (for example <code>anna.test%40example.com</code>).</li><li>The request URL of the submission does not contain the email address in the query string; the address is sent in the request body.</li><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-004">
+    <h4><span class="tc-id">TC-NEG-004</span>Reject submission of an email field that contains only spaces</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: five space characters (<code>     </code>)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type five space characters into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-006">
+    <h4><span class="tc-id">TC-NEG-006</span>Reject email addresses with a missing local part, a missing top-level domain, or a double @</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email 1: <code>@example.com</code></li><li>Email 2: <code>anna.test@example</code></li><li>Email 3: <code>anna@@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type <code>@example.com</code> into the footer &quot;Email&quot; field and click &quot;Subscribe&quot;.</li><li>Reload the page, type <code>anna.test@example</code> into the footer &quot;Email&quot; field and click &quot;Subscribe&quot;.</li><li>Reload the page, type <code>anna@@example.com</code> into the footer &quot;Email&quot; field and click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>After each submission, the page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved for any of the three values.</li><li>No confirmation email is sent for any of the three values.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-007">
+    <h4><span class="tc-id">TC-NEG-007</span>Reject and neutralize a script payload entered in the email field</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>&lt;script&gt;alert(1)&lt;/script&gt;@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type <code>&lt;script&gt;alert(1)&lt;/script&gt;@example.com</code> into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Observe the page and the rendered message.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No JavaScript dialog appears and no script from the input is executed.</li><li>If the entered value is displayed again on the page, it is shown as escaped plain text.</li><li>No subscription record is saved.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-008">
+    <h4><span class="tc-id">TC-NEG-008</span>Reject invalid input sent directly to the server, bypassing client-side validation</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>An HTTP client (for example a browser developer tools &quot;Edit and resend&quot; feature or a proxy) is available</li><li>The subscription request captured from a valid submission of <code>anna.test@example.com</code> can be replayed</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>' OR '1'='1</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Submit a valid subscription in the browser and capture the subscription request.</li><li>Replace the email value in the captured request body with <code>' OR '1'='1</code>, so client-side validation is not involved.</li><li>Send the modified request to the server.</li><li>Check the response and the subscription records.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The server rejects the value; the response contains &quot;Enter a valid email address.&quot;</li><li>The response contains no database error text, stack trace, or query fragment.</li><li>No subscription record is saved for the value <code>' OR '1'='1</code>, and no existing record is changed or returned.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-009">
+    <h4><span class="tc-id">TC-NEG-009</span>Handle failure of the email service after a valid submission</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-5</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li><li>The outgoing email service is unavailable (simulated by disabling the mail relay in the test environment)</li><li>No subscription exists for <code>anna.test@example.com</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type <code>anna.test@example.com</code> into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Observe the page and check the subscription records.</li><li>Restore the email service.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page does not show a stack trace, raw exception text, server internals, or a confirmation link.</li><li>No subscription for <code>anna.test@example.com</code> is in the active state.</li><li>No confirmation email is delivered while the email service is unavailable.</li><li>The page remains usable and the footer form can be submitted again.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-011">
+    <h4><span class="tc-id">TC-NEG-011</span>Activate only the matching subscription when a confirmation link is opened</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>Two pending subscriptions exist: <code>anna.test@example.com</code> and <code>boris.test@example.com</code></li><li>The confirmation link from the email to <code>anna.test@example.com</code> is available</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email A: <code>anna.test@example.com</code></li><li>Email B: <code>boris.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation link from the email sent to <code>anna.test@example.com</code>.</li><li>Check the state of the subscription for <code>anna.test@example.com</code>.</li><li>Check the state of the subscription for <code>boris.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The subscription for <code>anna.test@example.com</code> becomes active.</li><li>The subscription for <code>boris.test@example.com</code> stays pending (not active).</li><li>The confirmation link does not contain the email address of another subscriber and shows no data of other subscribers.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-012">
+    <h4><span class="tc-id">TC-NEG-012</span>Create one record when two visitors submit the same new address at the same time</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in two separate browser sessions as anonymous visitors</li><li>No subscription exists for <code>anna.test@example.com</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>In both browser sessions, type <code>anna.test@example.com</code> into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot; in both sessions at the same time (within 1 second).</li><li>Check the subscription records for <code>anna.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Both sessions show &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>Exactly one subscription record exists for <code>anna.test@example.com</code>.</li><li>No server error page or database error message is shown in either session.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-013">
+    <h4><span class="tc-id">TC-NEG-013</span>Give indistinguishable responses for new, pending, and active addresses</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8, AC-10</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>No subscription exists for <code>new.test@example.com</code></li><li>A pending subscription exists for <code>pending.test@example.com</code></li><li>An active subscription exists for <code>active.test@example.com</code></li><li>An HTTP client or browser developer tools (Network tab) is available to record status codes, bodies, and timing</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email 1: <code>new.test@example.com</code></li><li>Email 2: <code>pending.test@example.com</code></li><li>Email 3: <code>active.test@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Submit <code>new.test@example.com</code> and record the HTTP status code, response body, visible page, and response time.</li><li>Submit <code>pending.test@example.com</code> and record the same values.</li><li>Submit <code>active.test@example.com</code> and record the same values.</li><li>Repeat steps 1-3 ten times with fresh addresses of the same three kinds and compare the averages of the response times.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>All three submissions return the same HTTP status code.</li><li>All three pages show the same message &quot;Thanks! Please check your inbox to confirm your subscription.&quot; with the same page structure and no additional text, hint, or link that reveals the subscription state.</li><li>The average response times of the three kinds differ by less than 200 ms.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-015">
+    <h4><span class="tc-id">TC-NEG-015</span>Handle an extremely large input in the email field without a server error</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>An HTTP client is available to send the subscription request directly (browser field length limits do not apply)</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: 100000 letters <code>a</code> followed by <code>@example.com</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Send the subscription request with the test value as the email.</li><li>Record the response status, message, and response time.</li><li>Open the Notely website and submit a valid address <code>anna.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The server responds with &quot;Enter a valid email address.&quot; and no server error (no 5xx status, no timeout, no stack trace).</li><li>No subscription record is saved for the large value.</li><li>The follow-up valid submission in step 3 shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;, so the site is still responsive.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-016">
+    <h4><span class="tc-id">TC-NEG-016</span>Limit repeated submissions of a pending address to prevent confirmation email flooding</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-10</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>A pending subscription exists for <code>anna.test@example.com</code></li><li>A test mail server captures all outgoing email</li><li>An HTTP client or script is available to send repeated requests</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>anna.test@example.com</code></li><li>Number of submissions: 20 within 60 seconds</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Submit <code>anna.test@example.com</code> 20 times within 60 seconds.</li><li>Wait 5 minutes and count the confirmation emails received by the test mail server for this address.</li><li>Check the subscription records for <code>anna.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Fewer than 20 confirmation emails are delivered, which shows that the number of emails per address is throttled.</li><li>Exactly one subscription record exists for <code>anna.test@example.com</code>, in the pending state.</li><li>No response contains a server error or reveals the throttling state of the address in a way that differs from the neutral message &quot;Thanks! Please check your inbox to confirm your subscription.&quot; for normal requests.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-017">
+    <h4><span class="tc-id">TC-NEG-017</span>Reject an email address with a space inside it after trimming</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>  anna .test@example.com  </code> (two leading spaces, one space inside the local part, two trailing spaces)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type the test value into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>Only leading and trailing spaces are trimmed; the space inside the address is kept and makes the address invalid.</li><li>No subscription record is saved.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-018">
+    <h4><span class="tc-id">TC-NEG-018</span>Reject an invalid address that is surrounded by spaces</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in a browser as an anonymous visitor</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>   anna.test.example.com   </code> (three leading and three trailing spaces, no @ symbol)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type the test value into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-019">
+    <h4><span class="tc-id">TC-NEG-019</span>Create one record when two case variants of a new address are submitted at the same time</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-12</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website is open in two separate browser sessions as anonymous visitors</li><li>No subscription exists for <code>anna.test@example.com</code> in any letter case</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email 1: <code>Anna.Test@example.com</code></li><li>Email 2: <code>anna.test@EXAMPLE.COM</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>In session 1, type <code>Anna.Test@example.com</code> into the footer &quot;Email&quot; field.</li><li>In session 2, type <code>anna.test@EXAMPLE.COM</code> into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot; in both sessions at the same time (within 1 second).</li><li>Check the subscription records.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Both sessions show &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>Exactly one subscription record exists for the address, regardless of letter case.</li><li>No server error page or database error message is shown in either session.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-020">
+    <h4><span class="tc-id">TC-NEG-020</span>Create no duplicate for an active address in upper case with surrounding spaces</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-11, AC-12</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>An active subscription exists for <code>anna.test@example.com</code></li><li>A test mail server captures all outgoing email</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>  ANNA.TEST@EXAMPLE.COM  </code> (two leading and two trailing spaces, all capitals)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Type the test value into the footer &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Check the subscription records and the test mail server.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>Exactly one subscription record exists for the address and it stays active.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-021">
+    <h4><span class="tc-id">TC-NEG-021</span>Show an error page for a confirmation link with a missing or unknown token</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>A pending subscription exists for <code>anna.test@example.com</code></li><li>The valid confirmation link has the form <code>&lt;confirmation URL&gt;?token=&lt;valid token&gt;</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Link 1: the confirmation URL without the <code>token</code> parameter</li><li>Link 2: the confirmation URL with <code>token=</code> (empty value)</li><li>Link 3: the confirmation URL with <code>token=00000000000000000000000000000000</code> (well-formed but never issued)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open Link 1 in a browser.</li><li>Open Link 2 in a browser.</li><li>Open Link 3 in a browser.</li><li>Check the state of the subscription for <code>anna.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Each link shows an error page and does not show the confirmation page that states the subscription is active.</li><li>The error pages contain no stack trace, database error, or data of any subscriber.</li><li>The subscription for <code>anna.test@example.com</code> stays pending.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-022">
+    <h4><span class="tc-id">TC-NEG-022</span>Reject a confirmation link whose token was modified</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>A pending subscription exists for <code>anna.test@example.com</code></li><li>The valid confirmation link from the email is available</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Tampered link 1: the valid link with the last character of the token changed to a different character</li><li>Tampered link 2: the valid link with the last 5 characters of the token removed</li><li>Tampered link 3: the valid link with the token converted to upper case (if it contains lower-case letters)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open tampered link 1 in a browser.</li><li>Open tampered link 2 in a browser.</li><li>Open tampered link 3 in a browser.</li><li>Check the state of the subscription for <code>anna.test@example.com</code>.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Each tampered link shows an error page.</li><li>The subscription for <code>anna.test@example.com</code> is not activated by any tampered link and stays pending.</li><li>The error page does not reveal the email address, the expected token, or any hint about which part of the token was wrong.</li></ul>
+  </section>
+  <section class="tc" id="TC-NEG-023">
+    <h4><span class="tc-id">TC-NEG-023</span>Reject an injection payload in the confirmation token</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-15</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>A pending subscription exists for <code>anna.test@example.com</code></li><li>The valid confirmation link has the form <code>&lt;confirmation URL&gt;?token=&lt;valid token&gt;</code></li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Payload 1: <code>token=' OR '1'='1</code></li><li>Payload 2: <code>token=&lt;script&gt;alert(1)&lt;/script&gt;</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the confirmation URL with Payload 1 as the token in a browser.</li><li>Open the confirmation URL with Payload 2 as the token in a browser.</li><li>Check the state of all subscriptions.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>Both requests show an error page.</li><li>No JavaScript dialog appears, and the payload is not rendered as active markup on the error page.</li><li>The error page contains no database error text or stack trace.</li><li>No subscription is activated; the subscription for <code>anna.test@example.com</code> stays pending.</li></ul>
+  </section>
+
+  <h3>5.3 Boundary and edge cases</h3>
+  <section class="tc" id="TC-EDGE-001">
+    <h4><span class="tc-id">TC-EDGE-001</span>Accept an email address of exactly 254 characters (maximum)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2, AC-5</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690">https://errata.rfc-editor.org/eid1690</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>No subscription exists for the test address</li><li>A mailbox that can receive mail for the test address is available</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email of exactly 254 characters: <code>a</code> x 64 + <code>@</code> + <code>b</code> x 63 + <code>.</code> + <code>c</code> x 63 + <code>.</code> + <code>d</code> x 57 + <code>.com</code> (64 + 1 + 63 + 1 + 63 + 1 + 57 + 4 = 254 characters)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter the 254-character test email in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li><li>Check the mailbox of the test address.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>One subscription record exists for the address, with status pending.</li><li>One confirmation email containing a confirmation link is received.</li></ul>
+  </section>
+  <section class="tc" id="TC-EDGE-002">
+    <h4><span class="tc-id">TC-EDGE-002</span>Reject an email address of 255 characters (maximum plus one)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690">https://errata.rfc-editor.org/eid1690</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>No subscription exists for the test address</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email of exactly 255 characters: <code>a</code> x 64 + <code>@</code> + <code>b</code> x 63 + <code>.</code> + <code>c</code> x 63 + <code>.</code> + <code>d</code> x 58 + <code>.com</code> (64 + 1 + 63 + 1 + 63 + 1 + 58 + 4 = 255 characters)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter the 255-character test email in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved for the address.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-EDGE-003">
+    <h4><span class="tc-id">TC-EDGE-003</span>Accept a 254-character email address surrounded by spaces (trimmed length 254)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2, AC-11</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>No subscription exists for the test address</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email of 254 characters after trimming: <code>e</code> x 64 + <code>@</code> + <code>f</code> x 63 + <code>.</code> + <code>g</code> x 63 + <code>.</code> + <code>h</code> x 57 + <code>.com</code></li><li>Submitted value: 2 leading spaces + the email + 2 trailing spaces (258 characters before trimming)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter the submitted value with the surrounding spaces in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>One subscription record exists, and its saved address is the 254-character email without spaces.</li></ul>
+  </section>
+  <section class="tc" id="TC-EDGE-004">
+    <h4><span class="tc-id">TC-EDGE-004</span>Accept an email address of exactly 253 characters (maximum minus one)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td><a href="https://errata.rfc-editor.org/eid1690">https://errata.rfc-editor.org/eid1690</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>No subscription exists for the test address</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email of exactly 253 characters: <code>k</code> x 64 + <code>@</code> + <code>l</code> x 63 + <code>.</code> + <code>m</code> x 63 + <code>.</code> + <code>n</code> x 56 + <code>.com</code> (64 + 1 + 63 + 1 + 63 + 1 + 56 + 4 = 253 characters)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter the 253-character test email in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Thanks! Please check your inbox to confirm your subscription.&quot;</li><li>One subscription record exists for the address, with status pending.</li></ul>
+  </section>
+  <section class="tc" id="TC-EDGE-006">
+    <h4><span class="tc-id">TC-EDGE-006</span>Reject a single-character email value <code>a</code> (shortest non-empty input)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>The subscription store contains no records</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>a</code> (1 character)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>a</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+  <section class="tc" id="TC-EDGE-010">
+    <h4><span class="tc-id">TC-EDGE-010</span>Reject an email value with an empty domain part (<code>mia.test@</code>)</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>The Notely website footer with the &quot;Email&quot; field and the &quot;Subscribe&quot; button is displayed</li><li>The subscription store contains no records</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>Email: <code>mia.test@</code> (9 characters, &quot;@&quot; is the last character and the domain part is empty)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>mia.test@</code> in the &quot;Email&quot; field.</li><li>Click &quot;Subscribe&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul><li>The page shows &quot;Enter a valid email address.&quot;</li><li>No subscription record is saved.</li><li>No confirmation email is sent.</li></ul>
+  </section>
+
+  <h3>5.4 Regression</h3>
+  <p class="na">Not applicable for this run - regression analysis was not selected because the change is a new feature and no existing behavior is modified.</p>
+
+  <h2>6. Assumptions and risks</h2>
+  <ul>
+    <li>The form is available to anonymous visitors, with no login required.</li>
+    <li>The messages are shown in English exactly as quoted in the PBI.</li>
+    <li>The requirements do not define how a tester views subscription status or subscriber records; several cases assume the test environment offers a subscriber list, admin view, or database query showing the status (pending or active) per address.</li>
+    <li>The requirements do not give the text of the confirmation page or the error page; expected results describe the observable outcome only, and the exact wording should be confirmed during execution.</li>
+    <li>The requirements do not state the sender, subject, or body of the confirmation email; only the presence of a confirmation link is verified.</li>
+    <li>TC-FUN-012 assumes that a confirmation email 30 days old can be produced by seeding data or shifting the test environment clock.</li>
+    <li>The requirements define no visitor message for a failure of the email service (TC-NEG-009); expected results are limited to safe invariants.</li>
+    <li>The requirements define no rate limit for confirmation emails. TC-NEG-016 applies rate limiting guidance and may conflict with a literal reading of AC-10 (&quot;a new confirmation email is sent&quot;); the threshold (fewer than 20 emails for 20 submissions in 60 seconds) is a test assumption to clarify with the product owner.</li>
+    <li>The 200 ms response time tolerance in TC-NEG-013 is a test assumption for detecting enumeration through timing; the requirements define no timing rule.</li>
+    <li>Confirmation links never expire (BR-8), so no expired-link case is included. Security guidance recommends time-limited and single-use tokens, which differs from BR-8 and AC-14; this is recorded as a risk observation, not tested as a defect.</li>
+    <li>The requirements state no limits for the local part or domain labels; the length boundary cases use a 64-character local part and labels of at most 63 characters so that the total length is the only rule under test.</li>
+    <li>The email address is personal data and must be handled accordingly; the requirements state no specific rule.</li>
+  </ul>
+
+  <h2>7. References</h2>
+  <ul>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.html">Email Validation and Verification - OWASP Cheat Sheet Series</a> - rules on verification tokens, rate limiting, consistent responses to prevent enumeration, and email canonicalization</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">Input Validation - OWASP Cheat Sheet Series</a> - allowlist validation of email syntax, mandatory server-side validation, and injection protection</li>
+    <li><a href="https://medium.com/@giorgos.valamats/3-value-boundary-value-analysis-misconception-and-reality-25a008739660">3-value Boundary Value Analysis: Misconception and Reality (Medium)</a> - two-value boundary value analysis used to choose maximum and maximum plus one values</li>
+    <li><a href="https://www.softwaretestinghelp.com/what-is-boundary-value-analysis-and-equivalence-partitioning/">Boundary Value Analysis &amp; Equivalence Partitioning Examples (Software Testing Help)</a> - one representative value per partition and boundary values at the edges of a range</li>
+    <li><a href="https://errata.rfc-editor.org/eid1690">Erratum 1690 - RFC 3696</a> - the upper limit for the length of an email address is 254 characters</li>
+  </ul>
+
+  <h2>8. Change log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Revision</th><th>Date</th><th>Change</th></tr>
+    <tr><td>1</td><td>2026-09-24</td><td>Initial draft</td></tr>
+  </table></div>
+</main>
+</body>
+</html>
