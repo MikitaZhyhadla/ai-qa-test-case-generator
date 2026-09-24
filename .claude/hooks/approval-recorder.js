@@ -88,6 +88,13 @@ function main() {
   m = REJECT_RE.exec(prompt);
   if (m) {
     addContext(record(m[1], 'rejected', m[2].trim()));
+    return;
+  }
+  if (/^(APPROVE|REJECT)\b/.test(prompt)) {
+    addContext(
+      'NOT recorded - the message mentions APPROVE or REJECT but is not exactly "APPROVE <run-id>" or "REJECT <run-id>: <feedback>". ' +
+        'Tell the user that the decision was not recorded and ask them to send only that one line, without any other text or attached editor selection.'
+    );
   }
 }
 
