@@ -32,6 +32,7 @@ All repository content is written in English: code, configs, documentation, prom
 | Script | `workflow-state` | `.claude/scripts/workflow-state.js` | Deterministic CLI the coordinator uses to create and update `workflow-state.json` |
 | Library | `workflow-lib` | `.claude/lib/workflow-lib.js` | Shared code of the state script and the hooks: step graph, sha256, file lock, atomic writes |
 | Script | `selftest-hooks` | `.claude/scripts/selftest-hooks.js` | Self-test of the hooks and the state script |
+| Script | `open-report` | `.claude/scripts/open-report.js` | Opens the final HTML report of a run (or of the latest completed run) in the default browser |
 
 Subagents cannot ask the user questions, and none of them is given the `Agent` tool, so they cannot invoke other subagents. Only the coordinator talks to the user and invokes subagents.
 
