@@ -1,0 +1,22 @@
+{
+  "run_id": "issue-9-20260924-1247",
+  "decision": "approved",
+  "feedback": null,
+  "decided_at": "2026-09-24T11:55:57.192Z",
+  "decided_at_local": "2026-09-24 13:55",
+  "suite_revision": 4,
+  "suite_sha256": "c0b03ca324914e7e28ab6e93580d84555e03496d966b2d47ad0be3f6855b3420",
+  "recorded_by": "approval-recorder hook (UserPromptSubmit)",
+  "history": [
+    {
+      "run_id": "issue-9-20260924-1247",
+      "decision": "rejected",
+      "feedback": "1) Raise the priority of every test case that checks double booking of the same slot (AC-7) to Critical. 2) Add a positive test case: a patient who already has 3 upcoming appointments cancels one of them and then successfully books a new slot.",
+      "decided_at": "2026-09-24T11:24:41.477Z",
+      "decided_at_local": "2026-09-24 13:24",
+      "suite_revision": 2,
+      "suite_sha256": "635194b31fbb1311613eea6ec32da5cbfb965e2f0f9c87191074ec3a93c553c5",
+      "recorded_by": "approval-recorder hook (UserPromptSubmit)"
+    }
+  ]
+}
