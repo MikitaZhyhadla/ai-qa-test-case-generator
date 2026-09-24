@@ -33,40 +33,38 @@ The workflow rules are documented in [CLAUDE.md](CLAUDE.md). This README explain
 
 ## How it works
 
-```text
-/generate-test-cases <issue-number | issue-url>        (coordinator = main Claude Code session)
-        |
-        v
-requirements-formalizer --(GitHub MCP: read issue)--> input/pbi.md, 01-requirements.md
-        |   ^  open questions -> you answer -> formalizer updates -> you reply CONFIRM
-        v
-validator (scope: requirements, gates R1-R3)
-        v
-plan: select subagents from the execution profile (dynamic selection)
-        v
-+------------------------------ parallel ------------------------------+
-| functional-test-planner       -> 02-functional-tests.md              |
-| negative-test-planner  (+web) -> 03-negative-tests.md                |
-| edge-case-planner      (+web) -> 04-edge-case-tests.md    (if limits) |
-| regression-impact-analyzer (+MCP) -> 05-regression-impact.md (if change) |
-+-----------------------------------------------------------------------+
-        v
-coverage-aggregator -> 06-coverage-matrix.md
-        v
-validator (scope: test-design, gates G1-G9)  -- FAIL --> re-run only the owners, then downstream (max 3 retries)
-        v
-test-suite-builder -> 08-test-suite.md (draft)
-        v
-validator (scope: suite, gates S1-S3)        -- FAIL --> re-run test-suite-builder (max 3 retries)
-        v
-YOU: "APPROVE <run-id>"  or  "REJECT <run-id>: <feedback>"  (recorded by a hook)
-        |                         |
-        |                         +--> 09-review-feedback-rev-<n>.md -> revision -> validate -> ask again
-        v
-[markdown-builder, html-builder] (parallel) -> output/test-suite.md, output/test-suite.html
-        v
-summary comment on the GitHub Issue (GitHub MCP) + HTML report opens in your browser
+```mermaid
+flowchart TD
+    START["/generate-test-cases issue-number or issue-url"] --> FORM["requirements-formalizer<br/>reads the issue through GitHub MCP"]
+    FORM --> QA{"Open questions?"}
+    QA -- "yes" --> ANS["You answer the questions"]
+    ANS --> FORM
+    QA -- "no" --> CONF["You reply CONFIRM"]
+    CONF --> VR{"validator<br/>requirements gates R1-R3"}
+    VR -- "PASS" --> PLAN["plan: dynamic subagent selection"]
+    PLAN --> FUN["functional-test-planner"]
+    PLAN --> NEG["negative-test-planner<br/>+ web search"]
+    PLAN -.->|"if limits"| EDGE["edge-case-planner<br/>+ web search"]
+    PLAN -.->|"if existing feature changes"| REG["regression-impact-analyzer<br/>+ GitHub MCP"]
+    FUN --> AGG["coverage-aggregator"]
+    NEG --> AGG
+    EDGE --> AGG
+    REG --> AGG
+    AGG --> VD{"validator<br/>test-design gates G1-G9"}
+    VD -- "FAIL: re-run only the owners, max 3 retries" --> RETRY["failing planners fix their cases"]
+    RETRY --> AGG
+    VD -- "PASS" --> BUILD["test-suite-builder<br/>08-test-suite.md"]
+    BUILD --> VS{"validator<br/>suite gates S1-S3"}
+    VS -- "FAIL, max 3 retries" --> BUILD
+    VS -- "PASS" --> HUMAN{"You: APPROVE or REJECT<br/>recorded by a hook"}
+    HUMAN -- "REJECT + feedback" --> BUILD
+    HUMAN -- "APPROVE" --> MD["markdown-builder"]
+    HUMAN -- "APPROVE" --> HTML["html-builder"]
+    MD --> DONE["summary comment on the issue<br/>HTML report opens in the browser"]
+    HTML --> DONE
 ```
+
+Solid arrows are sequential steps; the four planners and the two builders run in parallel. Dotted arrows are steps that are selected only when the execution profile requires them.
 
 **Dynamic subagent selection.** `requirements-formalizer` writes an execution profile. The coordinator selects agents from it:
 
@@ -287,24 +285,31 @@ The hooks apply to subagents too. `.claude/settings.json` additionally denies ed
 
 ## Sample runs in this repository
 
-Three complete runs are stored in [runs/](runs/), each with its input, all artifacts, the approval record, the execution state, and the outputs.
+Four complete runs are stored in [runs/](runs/), each with its input, all artifacts, the approval record, the execution state, and the outputs.
 
 | Run | PBI | What it demonstrates |
 |---|---|---|
 | [issue-7-20260923-2249](runs/issue-7-20260923-2249/) | [#7](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/7) Password reset via email link | Complete happy path; two rounds of clarifying questions; security research (OWASP, NIST, RFC); `edge-case-planner` selected, `regression-impact-analyzer` skipped (new feature); targeted retry after G3/G4 (duplicates between planners); approval on the first revision; 103 test cases for 30 acceptance criteria. Executed before the model and budget optimization, therefore larger and slower. |
 | [issue-8-20260924-0138](runs/issue-8-20260924-0138/) | [#8](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/8) Promo code in the shopping cart | Incomplete PBI with 7 clarifying questions; change of an existing feature, so `regression-impact-analyzer` runs and uses the related issue [#10](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/10) found through MCP; targeted retries in all three scopes (requirements 1, test-design 2, suite 1); 50 test cases including 8 regression cases. |
 | [issue-9-20260924-1247](runs/issue-9-20260924-1247/) | [#9](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/9) Appointment time-slot booking | Interruption during the parallel design step and `--resume` (see [interruption-snapshot.txt](runs/issue-9-20260924-1247/interruption-snapshot.txt) and the `restarted after resume` entries in the step history); validator caught an unreachable source link (G7); `REJECT` with two feedback items, revision, re-validation, and `APPROVE` of revision 4; an approval message with attached editor text was correctly not accepted. |
+| [issue-19-20260924-1642](runs/issue-19-20260924-1642/) | [#19](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19) Newsletter subscription | Run from a clean checkout (a fresh clone without any local files), following this README; new feature with limits, so `edge-case-planner` runs and `regression-impact-analyzer` is skipped; targeted retry after G3/G4; approval on the first revision; 42 test cases. |
 
 Note: some test data in run 1 intentionally contains Cyrillic letters (for example `пароль2026`). The confirmed requirements define a "letter" as a Latin letter only, so non-Latin letters are an equivalence class that must be tested.
 
 ## Quick check for reviewers
 
-Issue [#19](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19) (newsletter subscription, 5 acceptance criteria) is a small PBI for a fast end-to-end check, about 15-20 minutes:
+Three small PBIs are prepared for a fast end-to-end check (about 15-25 minutes each). Each one leads to a different execution plan:
 
-1. Complete the [Setup](#setup) and create an issue in your fork from [samples/pbi/issue-19-newsletter-subscription.md](samples/pbi/issue-19-newsletter-subscription.md).
+| Issue | Sample file | Expected plan |
+|---|---|---|
+| [#19](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19) Newsletter subscription | [issue-19-newsletter-subscription.md](samples/pbi/issue-19-newsletter-subscription.md) | new feature with limits: functional, negative, edge cases; regression skipped |
+| [#22](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/22) Order number in the confirmation email | [issue-22-order-number-in-email.md](samples/pbi/issue-22-order-number-in-email.md) | change of an existing feature: functional, negative, regression (finds the related issue #10 through MCP); edge cases skipped |
+| [#23](https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/23) Light and dark theme | [issue-23-dark-theme.md](samples/pbi/issue-23-dark-theme.md) | new feature without limits: only functional and negative; edge cases and regression skipped; one vague criterion triggers a clarifying question |
+
+1. Complete the [Setup](#setup) and create issues in your fork from the sample files (the first line is the title, the rest is the body).
 2. Run `/generate-test-cases <your-issue-number>`, answer the questions with defaults, `CONFIRM`, and `APPROVE <run-id>`.
 
-Without a fork you can read the public issue of this repository by URL: `/generate-test-cases https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19`. Answer `Post the summary comment to the issue: no`, because your token cannot write to this repository.
+Without a fork you can read the public issues of this repository by URL, for example `/generate-test-cases https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/19`. Answer `Post the summary comment to the issue: no`, because your token cannot write to this repository.
 
 ## Models and cost
 
