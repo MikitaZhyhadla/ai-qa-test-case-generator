@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Suite - Promo code in the shopping cart</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --accent: #0969da; --card: #f6f8fa;
+    --critical: #cf222e; --high: #bc4c00; --medium: #9a6700; --low: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --accent: #4493f8; --card: #151b23;
+      --critical: #f85149; --high: #db6d28; --medium: #d29922; --low: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card); }
+  .table-wrap { overflow-x: auto; }
+  .tc { border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+        padding: 14px 18px; margin: 14px 0; page-break-inside: avoid; }
+  .tc h4 { margin: 0 0 10px; font-size: 16px; }
+  .tc-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--muted); margin-right: 6px; }
+  .tc table { background: var(--bg); }
+  .label { font-weight: 600; margin: 10px 0 4px; }
+  .prio { font-weight: 600; }
+  .prio-critical { color: var(--critical); } .prio-high { color: var(--high); }
+  .prio-medium { color: var(--medium); } .prio-low { color: var(--low); }
+  .na { color: var(--muted); font-style: italic; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; }
+  @media print { body { background: #fff; color: #000; } .tc { background: #fff; } a { color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Test Suite - Promo code in the shopping cart</h1>
+  <div class="table-wrap"><table>
+    <tr><th>Run ID</th><td>issue-8-20260924-0138</td></tr>
+    <tr><th>Source issue</th><td><a href="https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/8">#8 PBI: Apply a promo code in the shopping cart</a></td></tr>
+    <tr><th>Revision</th><td>2</td></tr>
+    <tr><th>Status</th><td>Approved</td></tr>
+    <tr><th>Approved at</th><td>2026-09-24 02:23</td></tr>
+    <tr><th>Generated</th><td>2026-09-24 05:45</td></tr>
+  </table></div>
+
+  <h2>1. Summary</h2>
+  <p>This suite covers the promo-code feature added to the ShopNest shopping cart: entering a code in a new &quot;Promo code&quot; field, applying percentage or fixed-amount discounts (with optional campaign minimum order values), removing an applied code, carrying the applied code and discount through checkout, and automatic removal when a cart change drops the order below a campaign's minimum. The testing approach combines functional coverage of the happy paths, negative and security coverage of invalid input and error conditions, boundary and equivalence coverage of the numeric thresholds and rounding/casing rules introduced by the feature, and a regression analysis of the pre-existing order-total calculation, checkout, order history, and cart-persistence behavior this change touches. All four planner agents ran because the feature has boundary-heavy calculations, multiple failure paths, and modifies an existing, already-released cart/checkout flow.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th></tr>
+    <tr><td>Functional</td><td>1</td><td>6</td><td>4</td><td>0</td><td>11</td></tr>
+    <tr><td>Negative</td><td>0</td><td>5</td><td>2</td><td>2</td><td>9</td></tr>
+    <tr><td>Security</td><td>1</td><td>1</td><td>0</td><td>0</td><td>2</td></tr>
+    <tr><td>Boundary</td><td>0</td><td>10</td><td>5</td><td>0</td><td>15</td></tr>
+    <tr><td>Equivalence</td><td>0</td><td>0</td><td>4</td><td>1</td><td>5</td></tr>
+    <tr><td>Regression</td><td>1</td><td>5</td><td>2</td><td>0</td><td>8</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>3</strong></td><td><strong>27</strong></td><td><strong>17</strong></td><td><strong>3</strong></td><td><strong>50</strong></td></tr>
+  </table></div>
+
+  <h2>2. Scope</h2>
+  <p class="label">In scope</p>
+  <ul>
+    <li>Display of the &quot;Promo code&quot; field and &quot;Apply&quot; button in the cart order summary</li>
+    <li>Applying valid percentage-discount and fixed-amount-discount codes, including campaign minimum order value checks</li>
+    <li>Discount calculation, order-total recalculation, capping, flooring, and rounding rules</li>
+    <li>The free-delivery threshold evaluated against the original, pre-discount subtotal</li>
+    <li>Invalid, expired, unrecognized, and malformed/malicious code input</li>
+    <li>Removing an applied code and automatic removal after a cart change drops the order below the campaign minimum</li>
+    <li>Carrying the applied code and discount through checkout</li>
+    <li>Persistence of an applied code with the saved cart for logged-in shoppers, and session-only persistence for guest shoppers</li>
+    <li>Regression impact on pre-existing order-total calculation, cart recalculation, checkout summary, order confirmation email, order history, monthly sales report, and cart persistence</li>
+  </ul>
+  <p class="label">Out of scope</p>
+  <ul>
+    <li>Creation and configuration of promo codes and campaigns in the admin panel (BR-1; out of scope per the requirements, admin panel not part of this PBI's testable UI)</li>
+    <li>Performance, accessibility, and localization aspects (no non-functional requirements stated in the PBI)</li>
+    <li>Authentication and payment-method processing beyond what is needed to exercise cart/checkout persistence</li>
+  </ul>
+
+  <h2>3. Requirements under test</h2>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Acceptance criterion</th></tr>
+    <tr><td>AC-1</td><td>The cart page shows a &quot;Promo code&quot; text field and an &quot;Apply&quot; button in the order summary area, alongside the existing subtotal, delivery fee, and order total.</td></tr>
+    <tr><td>AC-2</td><td>When the shopper enters a code linked to an active percentage-discount campaign and the order subtotal meets the campaign's minimum order value (if any), then clicks &quot;Apply&quot;, the discount is calculated as the campaign's percentage of the subtotal, the order total is recalculated as (subtotal - discount) + delivery fee (the free-delivery threshold is evaluated against the original, pre-discount subtotal), and the reduced order total is displayed.</td></tr>
+    <tr><td>AC-3</td><td>When the shopper enters a code linked to an active fixed-amount-discount campaign and the order subtotal meets the campaign's minimum order value (if any), then clicks &quot;Apply&quot;, the discount is the campaign's fixed amount capped so it never exceeds the subtotal, the order total is recalculated as (subtotal - discount) + delivery fee and floored at the delivery fee amount (or at 0.00 EUR if delivery is also waived), with the free-delivery threshold evaluated against the original, pre-discount subtotal, and the reduced order total is displayed.</td></tr>
+    <tr><td>AC-4</td><td>When the shopper enters a code that is not valid (not recognized, expired, or otherwise not usable) and clicks &quot;Apply&quot;, an error message is displayed and the order total does not change.</td></tr>
+    <tr><td>AC-5</td><td>After a code is successfully applied, the order summary shows the applied code and the resulting discount amount.</td></tr>
+    <tr><td>AC-6</td><td>The shopper can remove an applied promo code from the cart; after removal, the order summary no longer shows the code or its discount, and the order total returns to the value it had without the discount.</td></tr>
+    <tr><td>AC-7</td><td>When the shopper continues from the cart to checkout after applying a valid code, checkout shows the same applied code and discount, and the order total reflects the discount.</td></tr>
+    <tr><td>AC-8</td><td>When the shopper enters a code linked to an active campaign but the order subtotal does not meet the campaign's minimum order value, and clicks &quot;Apply&quot;, a distinct error message is displayed stating the required minimum order value, and the order total does not change.</td></tr>
+    <tr><td>AC-9</td><td>If the shopper changes cart contents (changes a quantity or removes an item) after a code was applied, and the order subtotal no longer meets the campaign's minimum order value, the code is automatically removed, an explanatory message is displayed, and the order total returns to the value it had without the discount.</td></tr>
+  </table></div>
+
+  <h2>4. Coverage matrix</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Requirement</th><th>Positive</th><th>Negative / Security</th><th>Boundary / Equivalence</th><th>Regression</th></tr>
+    <tr><td>AC-1</td><td>TC-FUN-001</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-2</td><td>TC-FUN-002, TC-FUN-004</td><td>TC-NEG-001</td><td>TC-EDGE-002, TC-EDGE-005, TC-EDGE-006, TC-EDGE-012, TC-EDGE-013, TC-EDGE-014, TC-EDGE-015, TC-EDGE-016, TC-EDGE-017, TC-EDGE-018, TC-EDGE-019, TC-EDGE-020</td><td>TC-REG-006</td></tr>
+    <tr><td>AC-3</td><td>TC-FUN-003, TC-FUN-004, TC-FUN-005</td><td>TC-NEG-002</td><td>TC-EDGE-003, TC-EDGE-007, TC-EDGE-008, TC-EDGE-009, TC-EDGE-010, TC-EDGE-011</td><td>-</td></tr>
+    <tr><td>AC-4</td><td>TC-FUN-006</td><td>TC-NEG-003, TC-NEG-004, TC-NEG-005, TC-NEG-006</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-5</td><td>TC-FUN-002, TC-FUN-003, TC-FUN-004</td><td>-</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-6</td><td>TC-FUN-008</td><td>TC-NEG-007</td><td>-</td><td>-</td></tr>
+    <tr><td>AC-7</td><td>TC-FUN-009, TC-FUN-010</td><td>TC-NEG-008</td><td>-</td><td>TC-REG-005</td></tr>
+    <tr><td>AC-8</td><td>TC-FUN-007</td><td>TC-NEG-009</td><td>TC-EDGE-001</td><td>-</td></tr>
+    <tr><td>AC-9</td><td>TC-FUN-011</td><td>TC-NEG-010, TC-NEG-011</td><td>TC-EDGE-004</td><td>-</td></tr>
+  </table></div>
+
+  <h2>5. Test cases</h2>
+
+  <h3>5.1 Functional</h3>
+
+  <section class="tc" id="TC-FUN-001">
+    <h4><span class="tc-id">TC-FUN-001</span>Display the Promo code field and Apply button in the cart order summary</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-1</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul><li>Shopper has a cart with at least one item: 1x &quot;Wireless Mouse&quot; at 25.00 EUR</li></ul>
+    <p class="label">Test data</p>
+    <ul><li>None</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Locate the order summary area (subtotal, delivery fee, order total).</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A &quot;Promo code&quot; text field is displayed in the order summary area.</li>
+      <li>An &quot;Apply&quot; button is displayed next to the &quot;Promo code&quot; field.</li>
+      <li>The existing subtotal, delivery fee, and order total are still displayed unchanged.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-002">
+    <h4><span class="tc-id">TC-FUN-002</span>Apply a valid percentage-discount promo code and recalculate the order total</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2, AC-5</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 45.00 EUR (below the 50.00 EUR free-delivery threshold)</li>
+      <li>An active percentage-discount campaign exists with code <code>SPRING20</code>, 20% off, minimum order value 30.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SPRING20</code></li>
+      <li>Subtotal: 45.00 EUR</li>
+      <li>Delivery fee (before discount logic): 4.99 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Enter <code>SPRING20</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is calculated as 20% of the 45.00 EUR subtotal, that is 9.00 EUR.</li>
+      <li>The order summary shows the applied code <code>SPRING20</code> and a discount amount of 9.00 EUR.</li>
+      <li>The order total is recalculated as (45.00 - 9.00) + 4.99 = 40.99 EUR and displayed.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-003">
+    <h4><span class="tc-id">TC-FUN-003</span>Apply a valid fixed-amount-discount promo code and recalculate the order total</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3, AC-5</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 38.00 EUR (below the 50.00 EUR free-delivery threshold)</li>
+      <li>An active fixed-amount-discount campaign exists with code <code>FIX15</code>, 15.00 EUR off, minimum order value 20.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FIX15</code></li>
+      <li>Subtotal: 38.00 EUR</li>
+      <li>Delivery fee (before discount logic): 4.99 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Enter <code>FIX15</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 15.00 EUR (the fixed campaign amount, which is less than the subtotal so no capping applies).</li>
+      <li>The order summary shows the applied code <code>FIX15</code> and a discount amount of 15.00 EUR.</li>
+      <li>The order total is recalculated as (38.00 - 15.00) + 4.99 = 27.99 EUR and displayed.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-004">
+    <h4><span class="tc-id">TC-FUN-004</span>Applying a new promo code replaces the previously applied code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2, AC-3, AC-5</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 38.00 EUR</li>
+      <li>Code <code>FIX15</code> (fixed 15.00 EUR off, minimum order value 20.00 EUR) is already applied, showing a discount of 15.00 EUR and an order total of 27.99 EUR</li>
+      <li>An active percentage-discount campaign exists with code <code>SPRING20</code>, 20% off, minimum order value 30.00 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Currently applied code: <code>FIX15</code></li>
+      <li>New promo code: <code>SPRING20</code></li>
+      <li>Subtotal: 38.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with <code>FIX15</code> already applied.</li><li>Enter <code>SPRING20</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Business rule BR-6 (only one code at a time) is enforced: <code>SPRING20</code> replaces <code>FIX15</code> as the applied code.</li>
+      <li>The order summary shows only <code>SPRING20</code> and its discount; <code>FIX15</code> is no longer shown.</li>
+      <li>The discount is recalculated as 20% of 38.00 EUR = 7.60 EUR, and the order total is recalculated as (38.00 - 7.60) + 4.99 = 35.39 EUR.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-005">
+    <h4><span class="tc-id">TC-FUN-005</span>Apply a fixed-amount discount when the subtotal qualifies for free delivery</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 65.00 EUR (at or above the 50.00 EUR free-delivery threshold)</li>
+      <li>An active fixed-amount-discount campaign exists with code <code>FIX15</code>, 15.00 EUR off, minimum order value 20.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FIX15</code></li>
+      <li>Subtotal: 65.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Enter <code>FIX15</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Business rule BR-4 is honored: the free-delivery threshold is evaluated against the original, pre-discount subtotal of 65.00 EUR, so delivery remains free (0.00 EUR) even though the discounted subtotal would otherwise still be above 50.00 EUR.</li>
+      <li>The discount is 15.00 EUR.</li>
+      <li>The order total is recalculated as (65.00 - 15.00) + 0.00 = 50.00 EUR and displayed.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-006">
+    <h4><span class="tc-id">TC-FUN-006</span>Enter an unrecognized promo code and receive an invalid-code error</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 45.00 EUR and an order total of 49.99 EUR</li>
+      <li>No promo code is currently applied</li>
+      <li>The code <code>NOTREAL2024</code> is not linked to any campaign</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>NOTREAL2024</code></li>
+      <li>Subtotal: 45.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Enter <code>NOTREAL2024</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>An error message is displayed indicating the code is not valid.</li>
+      <li>No code or discount is added to the order summary.</li>
+      <li>The order total remains 49.99 EUR, unchanged.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-007">
+    <h4><span class="tc-id">TC-FUN-007</span>Enter a valid campaign code that does not meet the minimum order value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 25.00 EUR and an order total of 29.99 EUR</li>
+      <li>An active campaign exists with code <code>BIGSPEND10</code>, 10% off, minimum order value 50.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>BIGSPEND10</code></li>
+      <li>Subtotal: 25.00 EUR</li>
+      <li>Campaign minimum order value: 50.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page.</li><li>Enter <code>BIGSPEND10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>A distinct error message is displayed stating the required minimum order value of 50.00 EUR for this code (business rule BR-2).</li>
+      <li>No code or discount is added to the order summary.</li>
+      <li>The order total remains 29.99 EUR, unchanged.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-008">
+    <h4><span class="tc-id">TC-FUN-008</span>Remove an applied promo code from the cart</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 45.00 EUR</li>
+      <li>Code <code>SPRING20</code> (20% off) is already applied, showing a discount of 9.00 EUR and an order total of 40.99 EUR</li>
+      <li>A &quot;Remove&quot; control is visible next to the applied code</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Applied code: <code>SPRING20</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with <code>SPRING20</code> already applied.</li><li>Click the &quot;Remove&quot; control next to the applied code.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The order summary no longer shows the code <code>SPRING20</code> or its discount.</li>
+      <li>The order total returns to 49.99 EUR (45.00 + 4.99), the value it had without the discount.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-009">
+    <h4><span class="tc-id">TC-FUN-009</span>Applied promo code and discount carry over from cart to checkout</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Happy path</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 38.00 EUR</li>
+      <li>Code <code>FIX15</code> (15.00 EUR off) is already applied, showing a discount of 15.00 EUR and an order total of 27.99 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Applied code: <code>FIX15</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with <code>FIX15</code> already applied.</li><li>Click &quot;Continue to checkout&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The checkout page shows the same applied code <code>FIX15</code> and the same discount amount of 15.00 EUR.</li>
+      <li>The checkout order total is 27.99 EUR, matching the discounted total from the cart.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-010">
+    <h4><span class="tc-id">TC-FUN-010</span>Applied promo code persists with the saved cart across a session for a logged-in shopper</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7</td></tr>
+      <tr><th>Technique</th><td>Alternative flow</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is logged in as <code>maria.santos@example.com</code></li>
+      <li>Shopper has a cart with subtotal 45.00 EUR</li>
+      <li>Code <code>SPRING20</code> (20% off) is applied, showing a discount of 9.00 EUR and an order total of 40.99 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Account: <code>maria.santos@example.com</code></li>
+      <li>Applied code: <code>SPRING20</code></li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>With <code>SPRING20</code> applied, close the browser session (log out or end the session without removing the code).</li><li>Log in again as <code>maria.santos@example.com</code> in a new session.</li><li>Open the cart page.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Business rule BR-9 is honored: the saved cart loads with <code>SPRING20</code> still applied, the same way saved cart items persist.</li>
+      <li>The order summary shows the code <code>SPRING20</code>, a discount of 9.00 EUR, and an order total of 40.99 EUR.</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-FUN-011">
+    <h4><span class="tc-id">TC-FUN-011</span>Promo code is automatically removed when a cart change drops the order below the campaign minimum</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Functional</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has a cart with subtotal 38.00 EUR containing 2x &quot;Desk Lamp&quot; at 19.00 EUR each</li>
+      <li>Code <code>FIX15</code> (15.00 EUR off, minimum order value 20.00 EUR) is applied, showing a discount of 15.00 EUR and an order total of 27.99 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Applied code: <code>FIX15</code></li>
+      <li>Campaign minimum order value: 20.00 EUR</li>
+      <li>New subtotal after change: 15.00 EUR (1x &quot;Desk Lamp&quot; removed, 1 remains at 15.00 EUR after a quantity/price adjustment used for this scenario)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with <code>FIX15</code> already applied.</li><li>Reduce the cart so the subtotal becomes 15.00 EUR (below the 20.00 EUR campaign minimum), for example by removing one item.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Business rule BR-8 is honored: the code <code>FIX15</code> transitions from applied to automatically removed because the new subtotal no longer meets the campaign's minimum order value.</li>
+      <li>An explanatory message is displayed stating that the promo code was removed because the order no longer meets the minimum order value.</li>
+      <li>The order summary no longer shows the code or its discount.</li>
+      <li>The order total returns to 19.99 EUR (15.00 + 4.99), the value it had without the discount.</li>
+    </ul>
+  </section>
+
+  <h3>5.2 Negative and security</h3>
+
+  <section class="tc" id="TC-NEG-001">
+    <h4><span class="tc-id">TC-NEG-001</span>Reject duplicate discount from rapid double-submission of a valid percentage code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Error guessing</td></tr>
+      <tr><th>Source</th><td><a href="https://www.qadecoded.com/topics/coupon-discount-promo-testing">https://www.qadecoded.com/topics/coupon-discount-promo-testing</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 80.00 EUR</li>
+      <li>Promo code &quot;SPRING10&quot; is linked to an active percentage-discount campaign (10%) with no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: SPRING10</li>
+      <li>Subtotal: 80.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter &quot;SPRING10&quot; in the Promo code field.</li><li>Click &quot;Apply&quot; twice in rapid succession (double-click) before the page finishes processing the first click.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is applied exactly once (8.00 EUR, 10% of 80.00 EUR)</li>
+      <li>The order summary shows a single applied code &quot;SPRING10&quot; and a single discount line</li>
+      <li>The order total reflects only one discount deduction, not two</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-002">
+    <h4><span class="tc-id">TC-NEG-002</span>Prevent applying a fixed-amount promo code to an empty cart</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper's cart contains no items (subtotal 0.00 EUR)</li>
+      <li>Promo code &quot;FLAT5&quot; is linked to an active fixed-amount-discount campaign (5.00 EUR) with no minimum order value</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: FLAT5</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Navigate to the cart page with an empty cart.</li><li>Enter &quot;FLAT5&quot; in the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>No discount is applied to the order total</li>
+      <li>An error or informational message indicates the code cannot be applied to an empty cart</li>
+      <li>The order summary shows no applied code and no discount amount</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-003">
+    <h4><span class="tc-id">TC-NEG-003</span>Show invalid-code error for a code linked to an expired campaign</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 45.00 EUR</li>
+      <li>No promo code is currently applied</li>
+      <li>Promo code &quot;SUMMER19&quot; is linked to a percentage-discount campaign whose end date has already passed (the campaign is no longer active)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: SUMMER19</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter &quot;SUMMER19&quot; in the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>An error message is displayed stating the code is invalid or not usable (AC-4 does not require the message to distinguish an expired code from any other not-usable code)</li>
+      <li>The order total remains unchanged (45.00 EUR subtotal + applicable delivery fee)</li>
+      <li>No code or discount is shown in the order summary</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-004">
+    <h4><span class="tc-id">TC-NEG-004</span>Reject an excessively long or malformed promo code input gracefully</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-low">Low</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Input validation</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 45.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: a 500-character string of repeated letter &quot;A&quot; (e.g., &quot;AAAA...A&quot; x500)</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Paste the 500-character string into the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The system rejects the input without a server error, timeout, or crash</li>
+      <li>An error message indicates the code is invalid or exceeds the allowed format</li>
+      <li>The order total remains unchanged and no code is shown as applied</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-005">
+    <h4><span class="tc-id">TC-NEG-005</span>Neutralize a script-tag payload entered in the promo code field</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 45.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> in the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The input is treated as an unrecognized/invalid code; the generic invalid-code error is shown as plain text</li>
+      <li>The script does not execute and no JavaScript dialog or code execution occurs</li>
+      <li>The order total remains unchanged and no code is shown as applied</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-006">
+    <h4><span class="tc-id">TC-NEG-006</span>Reject a SQL-injection-style payload entered in the promo code field</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Security</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-4</td></tr>
+      <tr><th>Technique</th><td>Security check</td></tr>
+      <tr><th>Source</th><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 45.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: <code>' OR '1'='1' --</code></li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>' OR '1'='1' --</code> in the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The generic invalid-code error is displayed; no code is applied</li>
+      <li>No campaign data, other codes, or database/server error details are disclosed in the response</li>
+      <li>The order total remains unchanged</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-007">
+    <h4><span class="tc-id">TC-NEG-007</span>Handle Remove action safely when no promo code is currently applied</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-low">Low</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-6</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart; subtotal is 45.00 EUR</li>
+      <li>No promo code is currently applied (no code is shown, and the &quot;Remove&quot; control is either not shown or is a no-op)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>None</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Navigate to the cart page with no promo code applied.</li><li>Attempt to trigger the &quot;Remove&quot; action for a promo code (via the UI control if present, or confirm no such control is available).</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>No error or unexpected state occurs; the removal action has no visible effect</li>
+      <li>The order summary continues to show no applied code and no discount</li>
+      <li>The order total remains unchanged</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-008">
+    <h4><span class="tc-id">TC-NEG-008</span>Auto-remove promo code at checkout when minimum order value is no longer met</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-7, AC-9</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://www.qadecoded.com/topics/coupon-discount-promo-testing">https://www.qadecoded.com/topics/coupon-discount-promo-testing</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Promo code &quot;BIG20&quot; is linked to an active percentage-discount campaign (20%) with a 60.00 EUR minimum order value</li>
+      <li>Shopper applied &quot;BIG20&quot; in the cart while the subtotal was 65.00 EUR</li>
+      <li>Before proceeding to checkout, the cart subtotal dropped to 55.00 EUR (e.g., a quantity was reduced)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: BIG20</li>
+      <li>Subtotal at apply: 65.00 EUR</li>
+      <li>Subtotal at checkout load: 55.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>From the cart with the reduced subtotal, click &quot;Proceed to checkout&quot;.</li><li>Observe the checkout page order summary.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The checkout page shows the promo code has been automatically removed</li>
+      <li>An explanatory message states the order no longer meets the code's minimum order value</li>
+      <li>The order total displayed at checkout reflects the value without the discount</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-009">
+    <h4><span class="tc-id">TC-NEG-009</span>Reject a below-minimum code without disturbing an already-applied valid code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR</li>
+      <li>Promo code &quot;SAVE10&quot; (10% off, no minimum order value) is already applied, showing a discount of 4.00 EUR and an order total of 40.99 EUR (40.00 - 4.00 + 4.99)</li>
+      <li>Promo code &quot;BIG20&quot; is linked to a different active campaign with a 60.00 EUR minimum order value</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Currently applied code: SAVE10</li>
+      <li>Attempted code: BIG20</li>
+      <li>Subtotal: 40.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>With &quot;SAVE10&quot; already applied, enter &quot;BIG20&quot; in the Promo code field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>An error message distinct from the generic invalid-code message is displayed, stating the required minimum order value (60.00 EUR) for &quot;BIG20&quot;</li>
+      <li>The previously applied code &quot;SAVE10&quot; remains applied, unchanged, with its discount still shown as 4.00 EUR (BR-6's replace-on-success rule does not trigger, since the &quot;BIG20&quot; apply attempt failed)</li>
+      <li>The order total remains 40.99 EUR, unchanged</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-010">
+    <h4><span class="tc-id">TC-NEG-010</span>Auto-remove promo code when reducing item quantity drops subtotal below minimum order value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://www.qadecoded.com/topics/coupon-discount-promo-testing">https://www.qadecoded.com/topics/coupon-discount-promo-testing</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Promo code &quot;BIG20&quot; (20% off, 60.00 EUR minimum order value) is applied to a cart with subtotal 70.00 EUR</li>
+      <li>A discount of 14.00 EUR is currently shown in the order summary</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: BIG20</li>
+      <li>Initial subtotal: 70.00 EUR</li>
+      <li>Subtotal after quantity reduction: 45.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Decrease the quantity of an item so the subtotal drops to 45.00 EUR.</li><li>Observe the order summary.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The promo code &quot;BIG20&quot; and its discount are automatically removed from the order summary</li>
+      <li>An explanatory message informs the shopper the code was removed because the order no longer meets the minimum order value</li>
+      <li>The order total returns to the non-discounted value for the new subtotal</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-NEG-011">
+    <h4><span class="tc-id">TC-NEG-011</span>Auto-remove promo code when removing an item drops subtotal below minimum order value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Negative</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>State transition</td></tr>
+      <tr><th>Source</th><td><a href="https://www.qadecoded.com/topics/coupon-discount-promo-testing">https://www.qadecoded.com/topics/coupon-discount-promo-testing</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Promo code &quot;BIG20&quot; (20% off, 60.00 EUR minimum order value) is applied to a cart with two item lines and subtotal 75.00 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: BIG20</li>
+      <li>Initial subtotal: 75.00 EUR</li>
+      <li>Subtotal after removing one item line: 30.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Remove one full item line from the cart so the subtotal drops to 30.00 EUR.</li><li>Observe the order summary.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The promo code &quot;BIG20&quot; and its discount are automatically removed from the order summary</li>
+      <li>An explanatory message informs the shopper the code was removed because the order no longer meets the minimum order value</li>
+      <li>The order total returns to the non-discounted value for the new subtotal (30.00 EUR + applicable delivery fee)</li>
+    </ul>
+  </section>
+
+  <h3>5.3 Boundary and edge cases</h3>
+
+  <section class="tc" id="TC-EDGE-001">
+    <h4><span class="tc-id">TC-EDGE-001</span>Reject apply when subtotal is 0.01 EUR below the campaign minimum order value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-8</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 29.99 EUR</li>
+      <li>Delivery fee is 4.99 EUR (subtotal below the 50.00 EUR free-delivery threshold)</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) requires a minimum order value of 30.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Subtotal: 29.99 EUR (minimum minus 0.01 EUR)</li>
+      <li>Campaign minimum order value: 30.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>An error message is displayed stating the required minimum order value of 30.00 EUR</li>
+      <li>No code or discount is shown in the order summary</li>
+      <li>The order total remains 34.98 EUR (29.99 + 4.99), unchanged</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-002">
+    <h4><span class="tc-id">TC-EDGE-002</span>Accept apply when subtotal equals the campaign minimum order value exactly</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 30.00 EUR</li>
+      <li>Delivery fee is 4.99 EUR (subtotal below the 50.00 EUR free-delivery threshold)</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) requires a minimum order value of 30.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Subtotal: 30.00 EUR (exact minimum)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is calculated as 3.00 EUR (10% of 30.00 EUR)</li>
+      <li>The order summary shows the applied code <code>SAVE10</code> and a discount of 3.00 EUR</li>
+      <li>The order total is displayed as 31.99 EUR (30.00 - 3.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-003">
+    <h4><span class="tc-id">TC-EDGE-003</span>Accept apply when subtotal is 0.01 EUR above the campaign minimum order value</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 20.01 EUR</li>
+      <li>Delivery fee is 4.99 EUR (subtotal below the 50.00 EUR free-delivery threshold)</li>
+      <li>Active fixed-amount-discount campaign code <code>FLAT5</code> (5.00 EUR off) requires a minimum order value of 20.00 EUR</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FLAT5</code></li>
+      <li>Subtotal: 20.01 EUR (minimum plus 0.01 EUR)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>FLAT5</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 5.00 EUR</li>
+      <li>The order summary shows the applied code <code>FLAT5</code> and a discount of 5.00 EUR</li>
+      <li>The order total is displayed as 20.00 EUR (20.01 - 5.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-004">
+    <h4><span class="tc-id">TC-EDGE-004</span>Auto-remove code when a cart quantity change drops the subtotal 0.01 EUR below the campaign minimum</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-9</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 35.00 EUR with code <code>SAVE10</code> (10% off, minimum order value 30.00 EUR) already applied</li>
+      <li>Applied discount is 3.50 EUR; order total is displayed as 36.49 EUR (35.00 - 3.50 + 4.99)</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Subtotal before change: 35.00 EUR</li>
+      <li>Subtotal after change: 29.99 EUR (0.01 EUR below the 30.00 EUR minimum)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Decrease the quantity of a cart item so the subtotal becomes 29.99 EUR.</li><li>Observe the order summary.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The code <code>SAVE10</code> is automatically removed from the order summary</li>
+      <li>An explanatory message is displayed stating the code was removed because the order no longer meets the campaign's minimum order value</li>
+      <li>The order total returns to 34.98 EUR (29.99 + 4.99), the value without the discount</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-005">
+    <h4><span class="tc-id">TC-EDGE-005</span>Charge delivery fee when pre-discount subtotal is 0.10 EUR below the free-delivery threshold</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal (pre-discount) is 49.90 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Pre-discount subtotal: 49.90 EUR (0.10 EUR below the 50.00 EUR free-delivery threshold)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 4.99 EUR (10% of 49.90 EUR)</li>
+      <li>The delivery fee of 4.99 EUR is still charged, because the pre-discount subtotal is below 50.00 EUR</li>
+      <li>The order total is displayed as 49.90 EUR (49.90 - 4.99 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-006">
+    <h4><span class="tc-id">TC-EDGE-006</span>Waive delivery fee when pre-discount subtotal equals the free-delivery threshold exactly</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal (pre-discount) is 50.00 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Pre-discount subtotal: 50.00 EUR (exact free-delivery threshold)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 5.00 EUR (10% of 50.00 EUR)</li>
+      <li>The delivery fee is waived (0.00 EUR), because the free-delivery threshold is evaluated against the original 50.00 EUR subtotal, not the discounted 45.00 EUR subtotal</li>
+      <li>The order total is displayed as 45.00 EUR (50.00 - 5.00 + 0.00)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-007">
+    <h4><span class="tc-id">TC-EDGE-007</span>Waive delivery fee when pre-discount subtotal is 0.01 EUR above the free-delivery threshold</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal (pre-discount) is 50.01 EUR</li>
+      <li>Active fixed-amount-discount campaign code <code>FLAT5</code> (5.00 EUR off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FLAT5</code></li>
+      <li>Pre-discount subtotal: 50.01 EUR (0.01 EUR above the free-delivery threshold)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>FLAT5</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 5.00 EUR</li>
+      <li>The delivery fee is waived (0.00 EUR)</li>
+      <li>The order total is displayed as 45.01 EUR (50.01 - 5.00 + 0.00)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-008">
+    <h4><span class="tc-id">TC-EDGE-008</span>Floor order total at the delivery fee when the fixed discount equals the subtotal exactly</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 20.00 EUR</li>
+      <li>Active fixed-amount-discount campaign code <code>MEGA20</code> (20.00 EUR off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>MEGA20</code></li>
+      <li>Subtotal: 20.00 EUR (equal to the fixed discount amount)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>MEGA20</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount applied is 20.00 EUR, exactly consuming the subtotal</li>
+      <li>The order total is floored at the delivery fee amount and displayed as 4.99 EUR (20.00 - 20.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-009">
+    <h4><span class="tc-id">TC-EDGE-009</span>Apply full fixed discount when it is 0.01 EUR less than the subtotal</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 20.01 EUR</li>
+      <li>Active fixed-amount-discount campaign code <code>MEGA20</code> (20.00 EUR off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>MEGA20</code></li>
+      <li>Subtotal: 20.01 EUR (0.01 EUR above the fixed discount amount)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>MEGA20</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The full discount of 20.00 EUR is applied, uncapped</li>
+      <li>The order total is displayed as 5.00 EUR (20.01 - 20.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-010">
+    <h4><span class="tc-id">TC-EDGE-010</span>Cap fixed discount at the subtotal when the discount amount exceeds it, delivery fee still charged</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 15.00 EUR</li>
+      <li>Active fixed-amount-discount campaign code <code>MEGA20</code> (20.00 EUR off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>MEGA20</code></li>
+      <li>Subtotal: 15.00 EUR (5.00 EUR less than the fixed discount amount)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>MEGA20</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is capped at 15.00 EUR so the discounted subtotal does not go below 0.00 EUR</li>
+      <li>The order total is floored at the delivery fee amount and displayed as 4.99 EUR (15.00 - 15.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-011">
+    <h4><span class="tc-id">TC-EDGE-011</span>Cap fixed discount at the subtotal and floor order total at 0.00 EUR when delivery is also waived</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-3</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 55.00 EUR (at or above the 50.00 EUR free-delivery threshold)</li>
+      <li>Active fixed-amount-discount campaign code <code>MEGA60</code> (60.00 EUR off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>MEGA60</code></li>
+      <li>Subtotal: 55.00 EUR (5.00 EUR less than the fixed discount amount)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>MEGA60</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is capped at 55.00 EUR so the discounted subtotal does not go below 0.00 EUR</li>
+      <li>Delivery is waived because the original subtotal (55.00 EUR) meets the free-delivery threshold</li>
+      <li>The order total is floored at 0.00 EUR (55.00 - 55.00 + 0.00)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-012">
+    <h4><span class="tc-id">TC-EDGE-012</span>Floor order total at the delivery fee with a 100% percentage discount, delivery fee still charged</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 25.00 EUR (below the 50.00 EUR free-delivery threshold)</li>
+      <li>Active percentage-discount campaign code <code>FULL100</code> (100% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FULL100</code></li>
+      <li>Subtotal: 25.00 EUR</li>
+      <li>Discount rate: 100% (maximum of the valid 0-100% percentage range)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>FULL100</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount equals the full subtotal, 25.00 EUR</li>
+      <li>The order total is floored at the delivery fee amount and displayed as 4.99 EUR (25.00 - 25.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-013">
+    <h4><span class="tc-id">TC-EDGE-013</span>Floor order total at 0.00 EUR with a 100% percentage discount and delivery also waived</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 60.00 EUR (at or above the 50.00 EUR free-delivery threshold)</li>
+      <li>Active percentage-discount campaign code <code>FULL100</code> (100% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>FULL100</code></li>
+      <li>Subtotal: 60.00 EUR</li>
+      <li>Discount rate: 100%</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>FULL100</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount equals the full subtotal, 60.00 EUR</li>
+      <li>Delivery is waived because the original subtotal meets the free-delivery threshold</li>
+      <li>The order total is displayed as 0.00 EUR (60.00 - 60.00 + 0.00)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-014">
+    <h4><span class="tc-id">TC-EDGE-014</span>Apply a 99% percentage discount, one step below the maximum</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR (below the 50.00 EUR free-delivery threshold)</li>
+      <li>Active percentage-discount campaign code <code>NEARFULL99</code> (99% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>NEARFULL99</code></li>
+      <li>Subtotal: 40.00 EUR</li>
+      <li>Discount rate: 99% (maximum minus one step)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>NEARFULL99</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The discount is 39.60 EUR (99% of 40.00 EUR)</li>
+      <li>The order total is displayed as 5.39 EUR (40.00 - 39.60 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-015">
+    <h4><span class="tc-id">TC-EDGE-015</span>Round a percentage discount down to 2 decimal places when the third decimal digit is below 5</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td><a href="https://en.wikipedia.org/wiki/ISO_4217">https://en.wikipedia.org/wiki/ISO_4217</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 33.33 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Subtotal: 33.33 EUR</li>
+      <li>Raw discount before rounding: 3.333 EUR (rounds down, third decimal digit is 3)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The displayed discount is rounded down to exactly 2 decimal places: 3.33 EUR</li>
+      <li>The order total is displayed with exactly 2 decimal places: 34.99 EUR (33.33 - 3.33 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-016">
+    <h4><span class="tc-id">TC-EDGE-016</span>Round a percentage discount up to 2 decimal places when the third decimal digit is 5 or above</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td><a href="https://en.wikipedia.org/wiki/ISO_4217">https://en.wikipedia.org/wiki/ISO_4217</a></td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 33.35 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: <code>SAVE10</code></li>
+      <li>Subtotal: 33.35 EUR</li>
+      <li>Raw discount before rounding: 3.335 EUR (rounds up, third decimal digit is 5)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>SAVE10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The displayed discount is rounded to exactly 2 decimal places: 3.34 EUR</li>
+      <li>The order total is displayed with exactly 2 decimal places: 35.00 EUR (33.35 - 3.34 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-017">
+    <h4><span class="tc-id">TC-EDGE-017</span>Accept a promo code entered in lowercase that matches a stored uppercase code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR</li>
+      <li>Active percentage-discount campaign code is stored as <code>SAVE10</code> (10% off), no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Entered code: <code>save10</code> (all lowercase)</li>
+      <li>Subtotal: 40.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>save10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The code is matched case-insensitively and applied</li>
+      <li>The order summary shows the applied code and a discount of 4.00 EUR</li>
+      <li>The order total is displayed as 40.99 EUR (40.00 - 4.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-018">
+    <h4><span class="tc-id">TC-EDGE-018</span>Accept a promo code entered with leading and trailing whitespace</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Entered code: &quot;  SAVE10  &quot; (two leading and two trailing spaces)</li>
+      <li>Subtotal: 40.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code>  SAVE10  </code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The whitespace is trimmed before validation and the code is applied</li>
+      <li>The order summary shows the applied code <code>SAVE10</code> and a discount of 4.00 EUR</li>
+      <li>The order total is displayed as 40.99 EUR (40.00 - 4.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-019">
+    <h4><span class="tc-id">TC-EDGE-019</span>Accept a promo code entered with mixed case combined with leading whitespace</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Equivalence</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-low">Low</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Equivalence partitioning</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR</li>
+      <li>Active percentage-discount campaign code <code>SAVE10</code> (10% off) has no minimum order value</li>
+      <li>No promo code is currently applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Entered code: &quot; SaVe10&quot; (one leading space, mixed case)</li>
+      <li>Subtotal: 40.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Enter <code> SaVe10</code> in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The whitespace is trimmed and the case-insensitive match succeeds; the code is applied</li>
+      <li>The order summary shows the applied code <code>SAVE10</code> and a discount of 4.00 EUR</li>
+      <li>The order total is displayed as 40.99 EUR (40.00 - 4.00 + 4.99)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-EDGE-020">
+    <h4><span class="tc-id">TC-EDGE-020</span>Re-apply the same already-applied code without exceeding the single-code limit of 1</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Boundary</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>AC-2</td></tr>
+      <tr><th>Technique</th><td>Boundary value analysis</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Cart subtotal is 40.00 EUR</li>
+      <li>Percentage-discount code <code>SAVE10</code> (10% off, no minimum order value) is already applied, showing a 4.00 EUR discount and an order total of 40.99 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Already-applied code: <code>SAVE10</code></li>
+      <li>Re-entered code: <code>SAVE10</code> (same code, entered again)</li>
+      <li>Subtotal: 40.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>With <code>SAVE10</code> already applied, enter <code>SAVE10</code> again in the &quot;Promo code&quot; field.</li><li>Click &quot;Apply&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The applied-code count stays at exactly 1: the order summary shows a single instance of <code>SAVE10</code>, not two</li>
+      <li>The discount is not doubled or duplicated by the re-apply; it remains 4.00 EUR</li>
+      <li>The order total remains 40.99 EUR (40.00 - 4.00 + 4.99), unchanged from before the re-apply action</li>
+    </ul>
+  </section>
+
+  <h3>5.4 Regression</h3>
+
+  <section class="tc" id="TC-REG-001">
+    <h4><span class="tc-id">TC-REG-001</span>Order total for a cart without a promo code still equals subtotal plus delivery fee</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-critical">Critical</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-1</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart</li>
+      <li>No promo code has been entered or applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Cart items: 2x &quot;Wireless Mouse&quot; at 12.50 EUR = 25.00 EUR subtotal</li>
+      <li>Delivery fee: 4.99 EUR (subtotal below 50.00 EUR threshold)</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with the given items and no promo code applied.</li><li>Read the displayed subtotal, delivery fee, and order total.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Subtotal shows 25.00 EUR</li>
+      <li>Delivery fee shows 4.99 EUR</li>
+      <li>Order total shows 29.99 EUR (subtotal + delivery fee, rounded to 2 decimals)</li>
+      <li>No promo code or discount line is shown in the order summary</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-002">
+    <h4><span class="tc-id">TC-REG-002</span>Free-delivery threshold still waives the delivery fee without a promo code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-1</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart</li>
+      <li>No promo code has been entered or applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Cart items: 1x &quot;Office Chair&quot; at 55.00 EUR = 55.00 EUR subtotal</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with the given items and no promo code applied.</li><li>Read the displayed delivery fee and order total.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Delivery fee shows 0.00 EUR (waived, subtotal at or above 50.00 EUR)</li>
+      <li>Order total shows 55.00 EUR</li>
+      <li>No promo code or discount line is shown in the order summary</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-003">
+    <h4><span class="tc-id">TC-REG-003</span>Changing item quantity without a promo code still recalculates subtotal and order total immediately</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-2</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper is on the cart page with items in the cart</li>
+      <li>No promo code has been entered or applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Cart item: &quot;Desk Lamp&quot; at 20.00 EUR, quantity changed from 1 to 3</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Open the cart page with 1x &quot;Desk Lamp&quot; (subtotal 20.00 EUR, no code applied).</li><li>Change the quantity of &quot;Desk Lamp&quot; to 3.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Subtotal updates immediately to 60.00 EUR</li>
+      <li>Delivery fee updates to 0.00 EUR (subtotal now at or above 50.00 EUR)</li>
+      <li>Order total updates immediately to 60.00 EUR</li>
+      <li>No promo code message is shown (none was applied)</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-004">
+    <h4><span class="tc-id">TC-REG-004</span>Checkout order summary still shows correct totals for an order without a promo code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-3</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has items in the cart</li>
+      <li>No promo code has been entered or applied</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Cart items: 1x &quot;Backpack&quot; at 39.00 EUR = 39.00 EUR subtotal</li>
+      <li>Delivery fee: 4.99 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>On the cart page, confirm the order summary shows subtotal 39.00 EUR, delivery fee 4.99 EUR, order total 43.99 EUR, and no promo code field content.</li><li>Click &quot;Continue to checkout&quot;.</li><li>Read the order summary on the checkout page.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>Checkout order summary shows subtotal 39.00 EUR, delivery fee 4.99 EUR, and order total 43.99 EUR</li>
+      <li>No promo code or discount line is shown on the checkout order summary</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-005">
+    <h4><span class="tc-id">TC-REG-005</span>Order confirmation email reflects the discounted order total for an order placed with a promo code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-3, AC-7</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>Shopper has items in the cart with subtotal 80.00 EUR</li>
+      <li>Promo code &quot;SAVE10&quot; (10% off, active, no minimum order value) is applied on the cart page</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul>
+      <li>Promo code: SAVE10 (10% percentage discount)</li>
+      <li>Subtotal: 80.00 EUR, discount: 8.00 EUR, delivery fee: 0.00 EUR (free delivery, subtotal &gt;= 50.00 EUR), order total: 72.00 EUR</li>
+    </ul>
+    <p class="label">Steps</p>
+    <ol><li>Apply promo code &quot;SAVE10&quot; on the cart page and confirm the order total shows 72.00 EUR.</li><li>Click &quot;Continue to checkout&quot; and confirm checkout shows the same applied code and order total 72.00 EUR.</li><li>Complete payment for the order.</li><li>Open the order confirmation email sent for this order.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The order confirmation email shows the order total as 72.00 EUR</li>
+      <li>The order confirmation email shows the applied promo code &quot;SAVE10&quot; and the discount amount of 8.00 EUR</li>
+      <li>The email does not show the pre-discount total (80.00 EUR) as the order total</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-006">
+    <h4><span class="tc-id">TC-REG-006</span>Order history shows the correct discounted order total for a past order placed with a promo code</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-medium">Medium</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-4, AC-2</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A logged-in shopper has previously placed an order using promo code &quot;SAVE10&quot; (10% off) with subtotal 80.00 EUR, discount 8.00 EUR, and order total 72.00 EUR</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Order total for the historical order: 72.00 EUR</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Log in as the shopper who placed the order.</li><li>Open the order history page.</li><li>Locate the order placed with promo code &quot;SAVE10&quot;.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The order history entry shows the order total as 72.00 EUR (the discounted total actually charged)</li>
+      <li>The order history entry does not show the pre-discount subtotal (80.00 EUR) as the order total</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-007">
+    <h4><span class="tc-id">TC-REG-007</span>Pre-existing saved cart without a promo code still restores correctly after login</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-5</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A logged-in shopper has a cart saved before this feature was released, containing items but no promo code data (2x &quot;Notebook&quot; at 3.50 EUR)</li>
+      <li>The shopper is currently logged out</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Saved cart: 2x &quot;Notebook&quot; at 3.50 EUR = 7.00 EUR subtotal</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>Log in as the shopper with the pre-existing saved cart.</li><li>Open the cart page.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>The cart restores with 2x &quot;Notebook&quot; and subtotal 7.00 EUR</li>
+      <li>Delivery fee shows 4.99 EUR and order total shows 11.99 EUR</li>
+      <li>No promo code field shows any residual value and no error is displayed</li>
+    </ul>
+  </section>
+
+  <section class="tc" id="TC-REG-008">
+    <h4><span class="tc-id">TC-REG-008</span>Applied promo code persists with the saved cart for a logged-in shopper across sessions and on the mobile app</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><td>Regression</td></tr>
+      <tr><th>Priority</th><td><span class="prio prio-high">High</span></td></tr>
+      <tr><th>Requirement refs</th><td>IA-5</td></tr>
+      <tr><th>Technique</th><td>Regression check</td></tr>
+      <tr><th>Source</th><td>N/A - derived from requirements</td></tr>
+    </table></div>
+    <p class="label">Preconditions</p>
+    <ul>
+      <li>A logged-in shopper has applied promo code &quot;SAVE10&quot; to a cart with subtotal 80.00 EUR (order total 72.00 EUR) on the web app</li>
+      <li>The shopper then logs out</li>
+    </ul>
+    <p class="label">Test data</p>
+    <ul><li>Promo code: SAVE10, subtotal 80.00 EUR, order total 72.00 EUR</li></ul>
+    <p class="label">Steps</p>
+    <ol><li>On the web app, apply promo code &quot;SAVE10&quot; to the cart and confirm order total 72.00 EUR, then log out.</li><li>Log back in on the web app and open the cart page.</li><li>Log in with the same account on the mobile app and open the cart page.</li></ol>
+    <p class="label">Expected result</p>
+    <ul>
+      <li>On web re-login, the cart restores with the same items, the applied code &quot;SAVE10&quot;, the discount amount, and order total 72.00 EUR</li>
+      <li>On the mobile app, the cart shows the same items, the applied code &quot;SAVE10&quot;, the discount amount, and order total 72.00 EUR</li>
+      <li>No cart items are lost or duplicated as a result of the code being persisted</li>
+    </ul>
+  </section>
+
+  <h2>6. Assumptions and risks</h2>
+  <ul>
+    <li>Codes are managed in the admin panel, which is out of scope for this PBI's testable UI; test scope covers the shopper-facing apply/remove/checkout flow only, using codes assumed to already exist and be configured.</li>
+    <li>The &quot;Promo code&quot; field and &quot;Apply&quot; button are placed within or adjacent to the existing order summary section on the cart page; the exact layout/position is not specified.</li>
+    <li>Removing an applied code is done via a visible &quot;Remove&quot; control shown next to the applied code in the order summary; the exact control or label is not specified.</li>
+    <li>AC-4's and AC-8's exact error-message wording, and AC-9's explanatory message wording, are not specified in the requirements; the affected test cases describe the observable outcome rather than exact copy.</li>
+    <li>BR-1 (promo codes created/configured in a separate admin panel) is a scope-definition rule rather than a testable shopper-facing behavior; no dedicated test case is created for it.</li>
+    <li>The rounding direction (round-half-up) used for currency rounding is an assumption, since the PBI states amounts are rounded to 2 decimal places but does not specify the rounding method.</li>
+    <li>Test data throughout this suite (promo codes, campaign minimums, discount rates and amounts) is fictional and internally consistent, since actual campaign configuration lives in the admin panel; actual QA execution must substitute real campaign data.</li>
+    <li><code>security_sensitive</code> is <code>no</code> for this run; the included security checks (script-tag and SQL-injection-style payloads) are defense-in-depth checks on the free-text promo code input, not driven by a stated security requirement.</li>
+  </ul>
+
+  <h2>7. References</h2>
+  <ul>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html">Input Validation - OWASP Cheat Sheet Series</a> - used allowlisting, length-limit, and anchored-regex guidance to design the malformed/oversized and script-injection promo code input cases</li>
+    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">Injection Prevention - OWASP Cheat Sheet Series</a> - used guidance on treating free-text input as untrusted before it is matched against stored codes, for the SQL-injection-style payload case</li>
+    <li><a href="https://www.qadecoded.com/topics/coupon-discount-promo-testing">Coupon, Discount, and Promo Testing | QA Decoded</a> - used concrete scenarios for duplicate/concurrent apply submission, re-evaluating the minimum-order threshold at checkout, and re-evaluating an applied code after a cart change</li>
+    <li><a href="https://en.wikipedia.org/wiki/Boundary-value_analysis">Boundary-value analysis</a> - confirms the two-value BVA technique and the smallest-increment rule, applied to all boundary cases in this run</li>
+    <li><a href="https://en.wikipedia.org/wiki/ISO_4217">ISO 4217</a> - confirms EUR has a minor unit of 2 decimal places; used for the currency-rounding cases</li>
+  </ul>
+
+  <h2>8. Change log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Revision</th><th>Date</th><th>Change</th></tr>
+    <tr><td>1</td><td>2026-09-24</td><td>Initial draft</td></tr>
+    <tr><td>2</td><td>2026-09-24</td><td>Fixed suite gate findings: S2</td></tr>
+  </table></div>
+</main>
+</body>
+</html>

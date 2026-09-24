@@ -1,0 +1,695 @@
+{
+  "schema_version": 1,
+  "run_id": "issue-8-20260924-0138",
+  "issue": {
+    "owner": "MikitaZhyhadla",
+    "repo": "ai-qa-test-case-generator",
+    "number": 8,
+    "url": "https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/8"
+  },
+  "status": "completed",
+  "awaiting": null,
+  "created_at": "2026-09-23T23:38:39.624Z",
+  "updated_at": "2026-09-24T00:28:37.054Z",
+  "execution_profile": {
+    "change_type": "existing-feature-change",
+    "has_boundaries": "yes",
+    "security_sensitive": "no",
+    "output_formats": "markdown+html",
+    "post_issue_comment": "yes"
+  },
+  "plan": {
+    "selected": [
+      {
+        "step": "design-functional",
+        "agent": "functional-test-planner",
+        "reason": "always selected"
+      },
+      {
+        "step": "design-negative",
+        "agent": "negative-test-planner",
+        "reason": "always selected (security_sensitive: no, no security-focused research required)"
+      },
+      {
+        "step": "design-edge",
+        "agent": "edge-case-planner",
+        "reason": "has_boundaries: yes"
+      },
+      {
+        "step": "design-regression",
+        "agent": "regression-impact-analyzer",
+        "reason": "change_type: existing-feature-change"
+      },
+      {
+        "step": "render-markdown",
+        "agent": "markdown-builder",
+        "reason": "output_formats contains markdown"
+      },
+      {
+        "step": "render-html",
+        "agent": "html-builder",
+        "reason": "output_formats contains html"
+      },
+      {
+        "step": "report",
+        "agent": "coordinator",
+        "reason": "post_issue_comment: yes"
+      }
+    ],
+    "skipped": []
+  },
+  "steps": {
+    "formalize": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:40:36.730Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:38:43.307Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:40:36.730Z",
+          "note": null
+        }
+      ]
+    },
+    "clarify": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:51:23.464Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:40:37.015Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:51:23.464Z",
+          "note": null
+        }
+      ]
+    },
+    "validate-requirements": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:53:32.638Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:51:23.556Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:53:32.638Z",
+          "note": null
+        }
+      ]
+    },
+    "plan": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:53:49.262Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:53:32.727Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:53:49.262Z",
+          "note": null
+        }
+      ]
+    },
+    "design-functional": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:56:51.906Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:53:49.354Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:56:51.906Z",
+          "note": null
+        }
+      ]
+    },
+    "design-negative": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:10:10.274Z",
+      "note": "G4 fix: TC-NEG-009 revised to below-minimum apply while another code applied",
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:53:49.445Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:57:12.068Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:02:24.196Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:02:24.430Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:03:09.560Z",
+          "note": "G4 fix: TC-NEG-003 revised to expired-code scenario"
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:08:45.452Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:08:45.637Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:10:10.274Z",
+          "note": "G4 fix: TC-NEG-009 revised to below-minimum apply while another code applied"
+        }
+      ]
+    },
+    "design-edge": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:10:40.521Z",
+      "note": "G3 fix: TC-EDGE-006 title shortened",
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:53:49.538Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:57:22.819Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:02:24.292Z",
+          "note": "invalidated by design-edge"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:02:24.572Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:03:25.040Z",
+          "note": "G4 fix: TC-EDGE-020 revised to same-code re-apply"
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:08:45.546Z",
+          "note": "invalidated by design-edge"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:08:45.732Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:10:40.521Z",
+          "note": "G3 fix: TC-EDGE-006 title shortened"
+        }
+      ]
+    },
+    "design-regression": {
+      "status": "completed",
+      "updated_at": "2026-09-23T23:55:28.357Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:53:49.629Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:55:28.357Z",
+          "note": null
+        }
+      ]
+    },
+    "aggregate": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:11:30.171Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:57:22.915Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-23T23:58:33.515Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:02:24.196Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:03:25.133Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:04:29.534Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:08:45.452Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:10:40.609Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:11:30.171Z",
+          "note": null
+        }
+      ]
+    },
+    "validate-design": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:13:34.940Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-23T23:58:33.607Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:02:24.196Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:04:29.626Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:08:45.452Z",
+          "note": "invalidated by design-negative"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:11:30.256Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:13:34.940Z",
+          "note": null
+        }
+      ]
+    },
+    "build-suite": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:18:25.399Z",
+      "note": "S2 fix",
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:13:35.034Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:16:29.051Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:17:58.140Z",
+          "note": "invalidated by build-suite"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:17:58.230Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:18:25.399Z",
+          "note": "S2 fix"
+        }
+      ]
+    },
+    "validate-suite": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:19:37.118Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:16:29.146Z",
+          "note": null
+        },
+        {
+          "status": "pending",
+          "at": "2026-09-24T00:17:58.140Z",
+          "note": "invalidated by build-suite"
+        },
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:18:25.489Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:19:37.118Z",
+          "note": null
+        }
+      ]
+    },
+    "approval": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:23:45.240Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:19:37.211Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:23:45.240Z",
+          "note": null
+        }
+      ]
+    },
+    "render-markdown": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:27:00.329Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:23:45.331Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:27:00.329Z",
+          "note": null
+        }
+      ]
+    },
+    "render-html": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:28:22.985Z",
+      "note": null,
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:23:45.425Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:28:22.985Z",
+          "note": null
+        }
+      ]
+    },
+    "report": {
+      "status": "completed",
+      "updated_at": "2026-09-24T00:28:36.959Z",
+      "note": "https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/8#issuecomment-5805235728",
+      "history": [
+        {
+          "status": "in_progress",
+          "at": "2026-09-24T00:28:23.076Z",
+          "note": null
+        },
+        {
+          "status": "completed",
+          "at": "2026-09-24T00:28:36.959Z",
+          "note": "https://github.com/MikitaZhyhadla/ai-qa-test-case-generator/issues/8#issuecomment-5805235728"
+        }
+      ]
+    }
+  },
+  "retry_limit": 3,
+  "retries": {
+    "requirements": 1,
+    "test-design": 2,
+    "suite": 1
+  },
+  "gates": {
+    "requirements": [
+      {
+        "attempt": 1,
+        "result": "FAIL",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-requirements-attempt-1.md",
+        "failed_gates": [
+          "R1"
+        ],
+        "at": "2026-09-23T23:52:13.382Z"
+      },
+      {
+        "attempt": 2,
+        "result": "PASS",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-requirements-attempt-2.md",
+        "failed_gates": [],
+        "at": "2026-09-23T23:53:32.549Z"
+      }
+    ],
+    "test-design": [
+      {
+        "attempt": 1,
+        "result": "FAIL",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-test-design-attempt-1.md",
+        "failed_gates": [
+          "G4"
+        ],
+        "at": "2026-09-24T00:02:17.438Z"
+      },
+      {
+        "attempt": 2,
+        "result": "FAIL",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-test-design-attempt-2.md",
+        "failed_gates": [
+          "G3",
+          "G4"
+        ],
+        "at": "2026-09-24T00:08:38.370Z"
+      },
+      {
+        "attempt": 3,
+        "result": "PASS",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-test-design-attempt-3.md",
+        "failed_gates": [],
+        "at": "2026-09-24T00:13:34.847Z"
+      }
+    ],
+    "suite": [
+      {
+        "attempt": 1,
+        "result": "FAIL",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-suite-attempt-1.md",
+        "failed_gates": [
+          "S2"
+        ],
+        "at": "2026-09-24T00:17:57.957Z"
+      },
+      {
+        "attempt": 2,
+        "result": "PASS",
+        "report": "runs/issue-8-20260924-0138/artifacts/07-validation-suite-attempt-2.md",
+        "failed_gates": [],
+        "at": "2026-09-24T00:19:37.033Z"
+      }
+    ]
+  },
+  "approval": {
+    "status": "approved",
+    "suite_revision": 2,
+    "suite_sha256": "43bf92e23d4b02eb9413353f812d27ca6a35b9952637aea9583a46f9daff9616"
+  },
+  "revisions": [
+    {
+      "suite_revision": 2,
+      "decision": "approved",
+      "feedback_file": null,
+      "at": "2026-09-24T00:23:44.958Z"
+    }
+  ],
+  "last_error": null,
+  "artifacts": {
+    "input/pbi.md": {
+      "sha256": "d13857d8b47d9003852bdf4eb552139b6eed637b0eff36fdc4691c79315ff7c9",
+      "written_at": "2026-09-23T23:39:57.374Z",
+      "tool": "Write",
+      "step": "formalize",
+      "agent": "requirements-formalizer",
+      "writes": 1
+    },
+    "artifacts/01-requirements.md": {
+      "sha256": "3b564f1ac0201322494c291cd36c9537204b2466247f57bcd940e9c571be7438",
+      "written_at": "2026-09-23T23:52:46.569Z",
+      "tool": "Edit",
+      "step": "clarify",
+      "agent": "requirements-formalizer",
+      "writes": 8
+    },
+    "artifacts/07-validation-requirements-attempt-1.md": {
+      "sha256": "409e88cf811b78ee0f6048131511b5af8122e1b78f7db700d44077585a488904",
+      "written_at": "2026-09-23T23:51:58.185Z",
+      "tool": "Write",
+      "step": "validate-requirements",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/07-validation-requirements-attempt-2.md": {
+      "sha256": "6e9c8505118bcc43d028c39506892bd44ee2ea6b8397279a133031a8d0beae8a",
+      "written_at": "2026-09-23T23:53:21.655Z",
+      "tool": "Write",
+      "step": "validate-requirements",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/05-regression-impact.md": {
+      "sha256": "cdaa917eff8e70f824349932da3d83657e2eebfde316b9f896bd68c5c732e874",
+      "written_at": "2026-09-23T23:55:18.770Z",
+      "tool": "Write",
+      "step": "design-regression",
+      "agent": "regression-impact-analyzer",
+      "writes": 1
+    },
+    "artifacts/02-functional-tests.md": {
+      "sha256": "e1db00b035184035a0e6ae7f4e0120308826d8a40978e1f9e8153910206b298f",
+      "written_at": "2026-09-23T23:56:41.827Z",
+      "tool": "Write",
+      "step": "design-functional",
+      "agent": "functional-test-planner",
+      "writes": 1
+    },
+    "artifacts/03-negative-tests.md": {
+      "sha256": "8cc0a2239650a9867e11d0a1717e88720e6de7a1a2ed6bd069e2c666691d9901",
+      "written_at": "2026-09-24T00:09:54.642Z",
+      "tool": "Edit",
+      "step": "design-negative",
+      "agent": "negative-test-planner",
+      "writes": 7
+    },
+    "artifacts/04-edge-case-tests.md": {
+      "sha256": "5f42a4602e1538eb9a51cdf36c44ed4b3fd327a5d6b783a27368baf06da7538f",
+      "written_at": "2026-09-24T00:10:20.317Z",
+      "tool": "Edit",
+      "step": "design-edge",
+      "agent": "edge-case-planner",
+      "writes": 7
+    },
+    "artifacts/06-coverage-matrix.md": {
+      "sha256": "255bab7ac018ca871e25f852867197d739d6c1b963679497e8c41cf3ad341439",
+      "written_at": "2026-09-24T00:11:19.113Z",
+      "tool": "Write",
+      "step": "aggregate",
+      "agent": "coverage-aggregator",
+      "writes": 3
+    },
+    "artifacts/07-validation-test-design-attempt-1.md": {
+      "sha256": "d7c58a1c660b2f89db415d8838250a3ba53dc7639744deda661932744ddee53c",
+      "written_at": "2026-09-24T00:02:00.962Z",
+      "tool": "Write",
+      "step": "validate-design",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/07-validation-test-design-attempt-2.md": {
+      "sha256": "0419d9e0f5dad1dd18a5d9064d193e818cdf1040f935525a876d256510f70863",
+      "written_at": "2026-09-24T00:08:20.989Z",
+      "tool": "Write",
+      "step": "validate-design",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/07-validation-test-design-attempt-3.md": {
+      "sha256": "6687647a6b3dd00fcedfdeb2479a6c665f1c4bcbf512b8790b741a641e2f5ed7",
+      "written_at": "2026-09-24T00:13:20.151Z",
+      "tool": "Write",
+      "step": "validate-design",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/08-test-suite.md": {
+      "sha256": "43bf92e23d4b02eb9413353f812d27ca6a35b9952637aea9583a46f9daff9616",
+      "written_at": "2026-09-24T00:18:15.003Z",
+      "tool": "Edit",
+      "step": "build-suite",
+      "agent": "test-suite-builder",
+      "writes": 4
+    },
+    "artifacts/07-validation-suite-attempt-1.md": {
+      "sha256": "bc766c885bdfd40fb98f39823a732fc225ea9b71a87375a046489f5c186beac4",
+      "written_at": "2026-09-24T00:17:42.548Z",
+      "tool": "Write",
+      "step": "validate-suite",
+      "agent": "validator",
+      "writes": 1
+    },
+    "artifacts/07-validation-suite-attempt-2.md": {
+      "sha256": "a0671330a6b8f5e8c37e434d51cd3678c7f06dd3aa95429690424c7f85dab0a2",
+      "written_at": "2026-09-24T00:19:22.753Z",
+      "tool": "Write",
+      "step": "validate-suite",
+      "agent": "validator",
+      "writes": 1
+    },
+    "output/test-suite.md": {
+      "sha256": "5795e06adddc7bcdc453601b97c12bd28187e39072a9a6dceeee2ac917031113",
+      "written_at": "2026-09-24T00:26:47.987Z",
+      "tool": "Write",
+      "step": "render-markdown",
+      "agent": "markdown-builder",
+      "writes": 1
+    },
+    "output/test-suite.html": {
+      "sha256": "3236111b015b6295a8af02061df93b8cc0407a0366eeb69ade8864e5a001e026",
+      "written_at": "2026-09-24T00:28:14.053Z",
+      "tool": "Write",
+      "step": "render-html",
+      "agent": "html-builder",
+      "writes": 1
+    }
+  },
+  "current_step": "report"
+}
